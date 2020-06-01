@@ -588,8 +588,8 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
       pipe.retry2();
     }
     //__syncthreads();
-    //gb.Sync();
-    kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
+    gb.Sync();
+    //kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
     pipe.advance2();
     if (tid == 0)
       pipe.in_wl().reset_next_slot();
@@ -651,6 +651,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
   extern bool enable_lb;
   static const size_t gg_main_pipe_1_gpu_gb_residency = maximum_residency(gg_main_pipe_1_gpu_gb, __tb_gg_main_pipe_1_gpu_gb, 0);
   static const size_t gg_main_pipe_1_gpu_gb_blocks = GG_MIN(blocks.x, ggc_get_nSM() * gg_main_pipe_1_gpu_gb_residency);
+  printf("the three values are %d and %d and %d\n", blocks.x, ggc_get_nSM() * gg_main_pipe_1_gpu_gb_residency, gg_main_pipe_1_gpu_gb_residency);
   if(!gg_main_pipe_1_gpu_gb_barrier_inited) { gg_main_pipe_1_gpu_gb_barrier.Setup(gg_main_pipe_1_gpu_gb_blocks); gg_main_pipe_1_gpu_gb_barrier_inited = true;};
   if (enable_lb)
   {
@@ -670,7 +671,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     unsigned int* global_count;
     unsigned int* local_count; 
     unsigned int *last_block;
-    int NUM_SM = 20;
+    int NUM_SM = ggc_get_nSM();
     cudaMallocManaged((void **)&global_sense,sizeof(bool));
     cudaMallocManaged((void **)&done,sizeof(bool));
     cudaMallocManaged((void **)&perSMsense,NUM_SM*sizeof(bool));
@@ -701,6 +702,12 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     check_cuda(cudaMemcpy(&i, cl_i, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaFree(cl_curdelta));
     check_cuda(cudaFree(cl_i));
+    cudaFree(global_sense);
+    cudaFree(perSMsense);
+    cudaFree(last_block);
+    cudaFree(local_count);
+    cudaFree(global_count);
+    cudaFree(done);
   }
 }
 void gg_main(CSRGraph& hg, CSRGraph& gg)
