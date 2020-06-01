@@ -175,10 +175,6 @@ __threadfence();
 __syncthreads();
 }    
 } else { // if only 1 TB on the SM, no need for the local barriers
-    if(isMasterThread){
-    perSMsense[smID] = ~perSMsense[smID];
-    }
-    __syncthreads();
 cudaBarrierAtomicSRB(global_count, numBlocksAtBarr, isMasterThread,  &perSMsense[smID], global_sense);
 }
 }
@@ -673,7 +669,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     unsigned int* global_count;
     unsigned int* local_count; 
     unsigned int *last_block;
-    int NUM_SM = 80;
+    int NUM_SM = 20;
     cudaMallocManaged((void **)&global_sense,sizeof(bool));
     cudaMallocManaged((void **)&done,sizeof(bool));
     cudaMallocManaged((void **)&perSMsense,NUM_SM*sizeof(bool));
@@ -686,7 +682,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     cudaMemset(global_count, 0, sizeof(unsigned int));
 
     for (int i = 0; i < NUM_SM; ++i) {
-       cudaMemset(&perSMsense[i], false, sizeof(bool));
+       cudaMemset(&perSMsense[i], true, sizeof(bool));
        cudaMemset(&local_count[i], 0, sizeof(unsigned int));
        cudaMemset(&last_block[i], 0, sizeof(unsigned int));
      }
