@@ -4,8 +4,7 @@
 #include "cub/cub.cuh"
 #include "cub/util_allocator.cuh"
 #include "thread_work.h"
-#include <cooperative_groups.h>
-namespace cg = cooperative_groups;
+
 
 inline __device__ void cudaBarrierAtomicSubSRB(unsigned int * globalBarr,
   // numBarr represents the number of
@@ -548,7 +547,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
   }
   
 
-  grid.sync();
+  //grid.sync();
   //gb.Sync();
   kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
   if (tid == 0)
