@@ -551,8 +551,8 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
   
 
   //grid.sync();
-  //gb.Sync();
-  kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
+  gb.Sync();
+  //kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
   if (tid == 0)
   {
     *cl_LEVEL = LEVEL;
