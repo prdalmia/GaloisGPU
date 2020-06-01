@@ -486,7 +486,7 @@ __device__ void sssp_kernel_dev(CSRGraph graph, int delta, bool enable_lb, Workl
       for (_np_i = threadIdx.x; _np_i < ITSIZE && _np.valid(_np_i); _np_i += BLKSIZE)
       {
         index_type edge;
-   //     assert(nps.fg.src[_np_i] < __kernel_tb_size);
+          assert(nps.fg.src[_np_i] < __kernel_tb_size);
         node = _np_closure[nps.fg.src[_np_i]].node;
         edge= nps.fg.itvalue[_np_i];
         {
@@ -589,7 +589,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
       pipe.retry2();
     }
     //__syncthreads();
-    gb.Sync(); 
+    //gb.Sync(); 
     kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
     pipe.advance2();
     if (tid == 0)
