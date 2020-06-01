@@ -358,7 +358,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
 {
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
-
+  cg::grid_group grid = cg::this_grid(); 
   const unsigned __kernel_tb_size = TB_SIZE;
   curdelta = *cl_curdelta;
   i = *cl_i;
@@ -370,24 +370,25 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
         pipe.in_wl().reset_next_slot();
       sssp_kernel_dev (gg, curdelta, enable_lb, pipe.in_wl(), pipe.out_wl(), pipe.re_wl());
       pipe.in_wl().swap_slots();
-      gb.Sync();
+      //gb.Sync();
+      grid.sync();
       pipe.retry2();
     }
-    //gb.Sync();
-    printf("Calling group sync\n");
-    cg::grid_group grid = cg::this_grid(); 
+    //gb.Sync(); 
     grid.sync();
     pipe.advance2();
     if (tid == 0)
       pipe.in_wl().reset_next_slot();
     remove_dups_dev (glevel, pipe.in_wl(), pipe.out_wl(), gb);
     pipe.in_wl().swap_slots();
-    gb.Sync();
+    //gb.Sync();
+    grid.sync();
     pipe.advance2();
     i++;
     curdelta += DELTA;
   }
-  gb.Sync();
+  //gb.Sync();
+  grid.sync();
   if (tid == 0)
   {
     *cl_curdelta = curdelta;
