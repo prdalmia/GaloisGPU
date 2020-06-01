@@ -374,6 +374,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
       pipe.retry2();
     }
     //gb.Sync();
+    printf("Calling group sync\n");
     cg::grid_group grid = cg::this_grid(); 
     grid.sync();
     pipe.advance2();
