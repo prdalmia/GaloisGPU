@@ -643,6 +643,7 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
 {
   dim3 blocks, threads;
   kernel_sizing(gg, blocks, threads);
+  blocks = 1280;
   t_work.init_thread_work(gg.nnodes);
   PipeContextT<Worklist2> wl;
   bfs_init <<<blocks, threads>>>(gg, start_node);
@@ -651,6 +652,6 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
   wl = PipeContextT<Worklist2>(gg.nnodes);
   wl.in_wl().wl[0] = start_node;
   wl.in_wl().update_gpu(1);
-  blocks = 1280;
+  
   gg_main_pipe_1_wrapper(gg,LEVEL,wl,blocks,threads);
 }
