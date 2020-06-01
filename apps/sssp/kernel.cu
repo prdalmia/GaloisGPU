@@ -687,10 +687,18 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
        cudaMemset(&local_count[i], 0, sizeof(unsigned int));
        cudaMemset(&last_block[i], 0, sizeof(unsigned int));
      }
-    
+     cudaEvent_t start;
+     cudaEvent_t stop;
+     cudaEventCreate(&start);
+     cudaEventCreate(&stop);
     // gg_main_pipe_1_gpu<<<1,1>>>(gg,glevel,curdelta,i,DELTA,remove_dups_barrier,remove_dups_blocks,pipe,blocks,threads,cl_curdelta,cl_i, enable_lb);
     gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,glevel,curdelta,i,DELTA,remove_dups_barrier,remove_dups_blocks,pipe,cl_curdelta,cl_i, enable_lb, gg_main_pipe_1_gpu_gb_barrier, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
-    
+    cudaDeviceSynchronize();
+    cudaEventRecord(stop);
+    float ms;
+    ms = ms*1000;
+    cudaEventElapsedTime(&ms, start, stop);
+    std::cout << "time cuda only(ms) " << ms << std::endl;
     check_cuda(cudaMemcpy(&curdelta, cl_curdelta, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaMemcpy(&i, cl_i, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaFree(cl_curdelta));
@@ -727,15 +735,6 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
   pipe = PipeContextT<Worklist2>(gg.nedges*2);
   pipe.in_wl().wl[0] = start_node;
   pipe.in_wl().update_gpu(1);
-  cudaEvent_t start;
-  cudaEvent_t stop;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
   gg_main_pipe_1_wrapper(gg,glevel,curdelta,i,DELTA,remove_dups_barrier,remove_dups_blocks,pipe,blocks,threads);
-  cudaDeviceSynchronize();
-    cudaEventRecord(stop);
-    float ms;
-    cudaEventElapsedTime(&ms, start, stop);
-    std::cout << "time cuda only(ms) " << ms << std::endl;
   printf("iterations: %d\n", i);
 }
