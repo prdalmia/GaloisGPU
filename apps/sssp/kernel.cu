@@ -205,7 +205,7 @@ const int smID = (blockIdx.x % numBlocksAtBarr); // mod by # SMs to get SM ID
 // barrier can't ensure DRF between TBs
 const int perSM_blockID = (blockIdx.x / numBlocksAtBarr);
 if(isMasterThread){
-  printf("Blocks is %d\n", numBlocksAtBarr);
+  printf("Blocks is %d and %d\n", numBlocksAtBarr, gridDim.x);
 }
 // given the gridDim.x, we can figure out how many TBs are on our SM -- assume
 // all SMs have an identical number of TBs
