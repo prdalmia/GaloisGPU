@@ -214,7 +214,7 @@ joinBarrier_helperSRB(global_sense, perSMsense, done, global_count, local_count,
 numBlocksAtBarr, smID, perSM_blockID, numTBs_perSM,
 isMasterThread);
 __threadfence();
-*global_sense = ~(*global_sense)
+*global_sense = ~(*global_sense);
 }
 
 void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
