@@ -596,7 +596,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     if(blockDim.x*blockIdx.x + threadIdx.x == 0){
       printf("Barrier called \n");
     } 
-    __synchthreads();
+    __syncthreads();
     kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
     pipe.advance2();
     if (tid == 0)
