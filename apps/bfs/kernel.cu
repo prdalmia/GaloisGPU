@@ -209,6 +209,8 @@ const int perSM_blockID = (blockIdx.x / numBlocksAtBarr);
 // given the gridDim.x, we can figure out how many TBs are on our SM -- assume
 // all SMs have an identical number of TBs
 
+int numTBs_perSM = (int)ceil((float)gridDim.x / numBlocksAtBarr);
+
 joinBarrier_helperSRB(global_sense, perSMsense, done, global_count, local_count, last_block,
 numBlocksAtBarr, smID, perSM_blockID, numTBs_perSM,
 isMasterThread);
