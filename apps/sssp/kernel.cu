@@ -201,7 +201,7 @@ const bool isMasterThread = ((threadIdx.x == 0) && (threadIdx.y == 0) &&
 const unsigned int numBlocksAtBarr = ((gridDim.x < NUM_SM) ? gridDim.x :
 NUM_SM);
 const int smID = (blockIdx.x % numBlocksAtBarr); // mod by # SMs to get SM ID
-if(isMasterThread && smID == 1)
+if(isMasterThread && blockIdx.x == 0)
 {
 printf("Barrier starts\n");
 }
