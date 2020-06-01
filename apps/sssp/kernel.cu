@@ -4,6 +4,8 @@
 #include "cub/cub.cuh"
 #include "cub/util_allocator.cuh"
 #include "thread_work.h"
+#include <cooperative_groups.h>
+namespace cg = cooperative_groups;
 
 void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
 #define TB_SIZE 256
@@ -371,7 +373,9 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
       gb.Sync();
       pipe.retry2();
     }
-    gb.Sync();
+    //gb.Sync();
+    cg::grid_group grid = cg::this_grid(); 
+    grid.sync();
     pipe.advance2();
     if (tid == 0)
       pipe.in_wl().reset_next_slot();
