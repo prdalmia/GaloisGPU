@@ -24,7 +24,7 @@ __threadfence();
 // atomicInc effectively adds 1 to atomic for each TB that's part of the
 // global barrier.
 atomicInc(globalBarr, 0x7FFFFFFF);
-printf("Global barr is %d\n", *globalBarr);
+//printf("Global barr is %d\n", *globalBarr);
 }
 __syncthreads();
 
@@ -209,11 +209,6 @@ const int perSM_blockID = (blockIdx.x / numBlocksAtBarr);
 // given the gridDim.x, we can figure out how many TBs are on our SM -- assume
 // all SMs have an identical number of TBs
 
-int numTBs_perSM = (int)ceil((float)gridDim.x / numBlocksAtBarr);
-if(isMasterThread){
-  printf("chalo barrier shuru kare for %d\n", blockIdx.x);
-}
- __syncthreads();
 joinBarrier_helperSRB(global_sense, perSMsense, done, global_count, local_count, last_block,
 numBlocksAtBarr, smID, perSM_blockID, numTBs_perSM,
 isMasterThread);
