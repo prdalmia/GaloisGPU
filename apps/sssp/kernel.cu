@@ -650,7 +650,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
   extern bool enable_lb;
   static const size_t gg_main_pipe_1_gpu_gb_residency = maximum_residency(gg_main_pipe_1_gpu_gb, __tb_gg_main_pipe_1_gpu_gb, 0);
   static const size_t gg_main_pipe_1_gpu_gb_blocks = GG_MIN(blocks.x, ggc_get_nSM() * gg_main_pipe_1_gpu_gb_residency);
-  printf("the three values are %d and %d and %d\n", blocks.x, ggc_get_nSM() * gg_main_pipe_1_gpu_gb_residency, gg_main_pipe_1_gpu_gb_residency);
+ // printf("the three values are %d and %d and %d\n", blocks.x, ggc_get_nSM() * gg_main_pipe_1_gpu_gb_residency, gg_main_pipe_1_gpu_gb_residency);
   if(!gg_main_pipe_1_gpu_gb_barrier_inited) { gg_main_pipe_1_gpu_gb_barrier.Setup(gg_main_pipe_1_gpu_gb_blocks); gg_main_pipe_1_gpu_gb_barrier_inited = true;};
   if (enable_lb)
   {
