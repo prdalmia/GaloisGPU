@@ -324,7 +324,8 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
       pipe.in_wl().reset_next_slot();
     bfs_kernel_dev (gg, LEVEL, enable_lb, pipe.in_wl(), pipe.out_wl());
     pipe.in_wl().swap_slots();
-    gb.Sync();
+    //gb.Sync();
+    grid.sync();
     pipe.advance2();
     LEVEL++;
   }
