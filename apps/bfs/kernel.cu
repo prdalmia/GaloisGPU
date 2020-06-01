@@ -220,7 +220,7 @@ isMasterThread);
 }
 
 void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
-#define TB_SIZE 256
+#define TB_SIZE 128
 const char *GGC_OPTIONS = "coop_conv=False $ outline_iterate_gb=True $ backoff_blocking_factor=4 $ parcomb=True $ np_schedulers=set(['fg', 'tb', 'wp']) $ cc_disable=set([]) $ tb_lb=True $ hacks=set([]) $ np_factor=8 $ instrument=set([]) $ unroll=[] $ read_props=None $ outline_iterate=True $ ignore_nested_errors=False $ np=True $ write_props=None $ quiet_cgen=True $ retry_backoff=True $ cuda.graph_type=basic $ cuda.use_worklist_slots=True $ cuda.worklist_type=basic";
 struct ThreadWork t_work;
 extern int start_node;
@@ -230,7 +230,7 @@ typedef int node_data_type;
 extern const node_data_type INF = INT_MAX;
 static const int __tb_bfs_kernel = TB_SIZE;
 static const int __tb_one = 1;
-static const int __tb_gg_main_pipe_1_gpu_gb = 256;
+static const int __tb_gg_main_pipe_1_gpu_gb = 128;
 __global__ void bfs_init(CSRGraph graph, int src)
 {
   unsigned tid = TID_1D;
@@ -586,7 +586,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
   extern bool enable_lb;
   static const size_t gg_main_pipe_1_gpu_gb_residency = maximum_residency(gg_main_pipe_1_gpu_gb, __tb_gg_main_pipe_1_gpu_gb, 0);
   static const size_t gg_main_pipe_1_gpu_gb_blocks = GG_MIN(blocks.x, ggc_get_nSM() * gg_main_pipe_1_gpu_gb_residency);
-  printf("the three values are %d and %d and %d\n", gg_main_pipe_1_gpu_gb,  __tb_gg_main_pipe_1_gpu_gb, 0);
+  printf("the three values are %d and %d and %d\n", blocks.x, ggc_get_nSM() * gg_main_pipe_1_gpu_gb_residency, gg_main_pipe_1_gpu_gb_residency);
   if(!gg_main_pipe_1_gpu_gb_barrier_inited) { gg_main_pipe_1_gpu_gb_barrier.Setup(gg_main_pipe_1_gpu_gb_blocks); gg_main_pipe_1_gpu_gb_barrier_inited = true;};
   if (enable_lb)
   {
@@ -626,7 +626,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
     cudaEventCreate(&stop);
     cudaEventRecord(start);
     // gg_main_pipe_1_gpu<<<1,1>>>(gg,LEVEL,pipe,blocks,threads,cl_LEVEL, enable_lb);
-    gg_main_pipe_1_gpu_gb<<<160, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
+    gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
     cudaEventRecord(stop);
     float ms;
     cudaEventElapsedTime(&ms, start, stop);
