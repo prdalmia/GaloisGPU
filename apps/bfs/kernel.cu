@@ -628,6 +628,12 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
     std::cout << "time cuda only(ms) " << ms << std::endl;
     check_cuda(cudaMemcpy(&LEVEL, cl_LEVEL, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaFree(cl_LEVEL));
+    cudaFree(global_sense);
+    cudaFree(perSMsense);
+    cudaFree(last_block);
+    cudaFree(local_count);
+    cudaFree(global_count);
+    cudaFree(done);
   }
 }
 void gg_main(CSRGraph& hg, CSRGraph& gg)
