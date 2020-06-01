@@ -596,7 +596,8 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
       pipe.in_wl().reset_next_slot();
     remove_dups_dev (glevel, pipe.in_wl(), pipe.out_wl(), gb);
     pipe.in_wl().swap_slots();
-    gb.Sync();
+    //gb.Sync();
+    kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
     //grid.sync();
     pipe.advance2();
     i++;
