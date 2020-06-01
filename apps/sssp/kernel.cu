@@ -204,13 +204,14 @@ const int smID = (blockIdx.x % numBlocksAtBarr); // mod by # SMs to get SM ID
 // all thread blocks on the same SM access unique locations because the
 // barrier can't ensure DRF between TBs
 const int perSM_blockID = (blockIdx.x / numBlocksAtBarr);
+if(isMasterThread){
+  printf("Blocks is %d\n", numBlocksAtBarr);
+}
 // given the gridDim.x, we can figure out how many TBs are on our SM -- assume
 // all SMs have an identical number of TBs
 
 int numTBs_perSM = (int)ceil((float)gridDim.x / numBlocksAtBarr);
-if(isMasterThread){
-  printf("Blocks is %d\n", numTBs_perSM );
-}
+
 __syncthreads();
 
 joinBarrier_helperSRB(global_sense, perSMsense, done, global_count, local_count, last_block,
