@@ -328,6 +328,11 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     pipe.advance2();
     LEVEL++;
   }
+  if(blockDim.x*blockIdx.x + threadIdx.x == 0)
+  {
+    printf("Going to call the global barrier\n");
+  }
+  __syncthreads();
   grid.sync();
   //gb.Sync();
   if (tid == 0)
