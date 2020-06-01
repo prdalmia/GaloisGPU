@@ -486,7 +486,7 @@ __device__ void sssp_kernel_dev(CSRGraph graph, int delta, bool enable_lb, Workl
       for (_np_i = threadIdx.x; _np_i < ITSIZE && _np.valid(_np_i); _np_i += BLKSIZE)
       {
         index_type edge;
-        assert(nps.fg.src[_np_i] < __kernel_tb_size);
+   //     assert(nps.fg.src[_np_i] < __kernel_tb_size);
         node = _np_closure[nps.fg.src[_np_i]].node;
         edge= nps.fg.itvalue[_np_i];
         {
