@@ -389,8 +389,8 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     curdelta += DELTA;
   }
   __syncthreads();
-  //gb.Sync();
-  grid.sync();
+  gb.Sync();
+  //grid.sync();
   if (tid == 0)
   {
     *cl_curdelta = curdelta;
