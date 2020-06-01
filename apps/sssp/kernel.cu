@@ -206,8 +206,8 @@ const int perSM_blockID = (blockIdx.x / numBlocksAtBarr);
 // all SMs have an identical number of TBs
 
 int numTBs_perSM = (int)ceil((float)gridDim.x / numBlocksAtBarr);
-if(isMasterThread && smID ==0){
-  printf("Num blocks at Barr is %d", numBlocksAtBarr);
+if(isMasterThread && smID ==0 && blockIdx.x ==0){
+  printf("Num blocks at Barr is %d\n", numBlocksAtBarr);
 }
 __syncthreads();
 
