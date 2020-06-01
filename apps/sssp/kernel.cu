@@ -209,7 +209,7 @@ const int perSM_blockID = (blockIdx.x / numBlocksAtBarr);
 
 int numTBs_perSM = (int)ceil((float)gridDim.x / numBlocksAtBarr);
 if(isMasterThread){
-  printf("Blocks is %d\n", numTBs_perSM )
+  printf("Blocks is %d\n", numTBs_perSM );
 }
 __syncthreads();
 
