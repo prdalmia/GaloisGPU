@@ -209,7 +209,7 @@ int numTBs_perSM = (int)ceil((float)gridDim.x / numBlocksAtBarr);
 if(isMasterThread && smID ==0){
   printf("Num blocks at Barr is %d", numBlocksAtBarr);
 }
-
+__syncthreads();
 
 joinBarrier_helperSRB(global_sense, perSMsense, done, global_count, local_count, last_block,
 numBlocksAtBarr, smID, perSM_blockID, numTBs_perSM,
