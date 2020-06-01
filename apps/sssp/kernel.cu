@@ -61,6 +61,7 @@ for (int i = 0; i < backoff; ++i) { ; }
 __syncthreads();
 }
 }
+}
 
 inline __device__ void cudaBarrierAtomicSRB(unsigned int * barrierBuffers,
  // numBarr represents the number of
