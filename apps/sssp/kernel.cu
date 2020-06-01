@@ -178,6 +178,7 @@ __syncthreads();
     if(isMasterThread){
     perSMsense[smID] = ~perSMsense[smID];
     }
+    __syncthreads();
 cudaBarrierAtomicSRB(global_count, numBlocksAtBarr, isMasterThread,  &perSMsense[smID], global_sense);
 }
 }
@@ -201,11 +202,7 @@ const bool isMasterThread = ((threadIdx.x == 0) && (threadIdx.y == 0) &&
 const unsigned int numBlocksAtBarr = ((gridDim.x < NUM_SM) ? gridDim.x :
 NUM_SM);
 const int smID = (blockIdx.x % numBlocksAtBarr); // mod by # SMs to get SM ID
-if(isMasterThread && blockIdx.x == 0)
-{
-printf("Barrier starts\n");
-}
-__syncthreads();
+
 // all thread blocks on the same SM access unique locations because the
 // barrier can't ensure DRF between TBs
 const int perSM_blockID = (blockIdx.x / numBlocksAtBarr);
