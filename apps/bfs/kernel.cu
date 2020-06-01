@@ -586,7 +586,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
   extern bool enable_lb;
   static const size_t gg_main_pipe_1_gpu_gb_residency = maximum_residency(gg_main_pipe_1_gpu_gb, __tb_gg_main_pipe_1_gpu_gb, 0);
   static const size_t gg_main_pipe_1_gpu_gb_blocks = GG_MIN(blocks.x, ggc_get_nSM() * gg_main_pipe_1_gpu_gb_residency);
-  printf("the three values are %d and %d and %d\n", blocks.x,  ggc_get_nSM() * gg_main_pipe_1_gpu_gb_residency, gg_main_pipe_1_gpu_gb_residency);
+  printf("the three values are %d and %d and %d\n", gg_main_pipe_1_gpu_gb,  __tb_gg_main_pipe_1_gpu_gb, 0);
   if(!gg_main_pipe_1_gpu_gb_barrier_inited) { gg_main_pipe_1_gpu_gb_barrier.Setup(gg_main_pipe_1_gpu_gb_blocks); gg_main_pipe_1_gpu_gb_barrier_inited = true;};
   if (enable_lb)
   {
@@ -603,7 +603,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
     unsigned int* global_count;
     unsigned int* local_count; 
     unsigned int *last_block;
-    int NUM_SM = 20;
+    int NUM_SM = ggc_get_nSM();
     cudaMallocManaged((void **)&global_sense,sizeof(bool));
     cudaMallocManaged((void **)&done,sizeof(bool));
     cudaMallocManaged((void **)&perSMsense,NUM_SM*sizeof(bool));
