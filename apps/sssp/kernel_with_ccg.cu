@@ -8,7 +8,7 @@
 namespace cg = cooperative_groups;
 
 void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
-#define TB_SIZE 256
+#define TB_SIZE 16
 const char *GGC_OPTIONS = "coop_conv=False $ outline_iterate_gb=True $ backoff_blocking_factor=4 $ parcomb=True $ np_schedulers=set(['fg', 'wp']) $ cc_disable=set([]) $ tb_lb=True $ hacks=set([]) $ np_factor=8 $ instrument=set([]) $ unroll=[] $ read_props=None $ outline_iterate=True $ ignore_nested_errors=False $ np=True $ write_props=None $ quiet_cgen=True $ retry_backoff=True $ cuda.graph_type=basic $ cuda.use_worklist_slots=True $ cuda.worklist_type=basic";
 struct ThreadWork t_work;
 extern int DELTA;
@@ -19,7 +19,7 @@ typedef int node_data_type;
 typedef int * gint_p;
 extern const node_data_type INF = INT_MAX;
 static const int __tb_one = 1;
-static const int __tb_gg_main_pipe_1_gpu_gb = 256;
+static const int __tb_gg_main_pipe_1_gpu_gb = 16;
 static const int __tb_sssp_kernel = TB_SIZE;
 static const int __tb_remove_dups = TB_SIZE;
 __global__ void kernel(CSRGraph graph, int src)
@@ -463,6 +463,7 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
 {
   dim3 blocks, threads;
   kernel_sizing(gg, blocks, threads);
+  blocks = 2560;
   t_work.init_thread_work(gg.nnodes);
   static GlobalBarrierLifetime remove_dups_barrier;
   static bool remove_dups_barrier_inited;
