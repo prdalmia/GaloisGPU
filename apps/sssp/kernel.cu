@@ -590,7 +590,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     }
     //__syncthreads();
     gb.Sync(); 
-    //kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
+    kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
     pipe.advance2();
     if (tid == 0)
       pipe.in_wl().reset_next_slot();
