@@ -593,10 +593,6 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     }
     //__syncthreads();
     //gb.Sync();
-    if(blockDim.x*blockIdx.x + threadIdx.x == 0){
-      printf("Barrier called \n");
-    } 
-    __syncthreads();
     kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
     pipe.advance2();
     if (tid == 0)
@@ -691,7 +687,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     cudaMemset(global_count, 0, sizeof(unsigned int));
 
     for (int i = 0; i < NUM_SM; ++i) {
-       cudaMemset(&perSMsense[i], true, sizeof(bool));
+       cudaMemset(&perSMsense[i], false, sizeof(bool));
        cudaMemset(&local_count[i], 0, sizeof(unsigned int));
        cudaMemset(&last_block[i], 0, sizeof(unsigned int));
      }
