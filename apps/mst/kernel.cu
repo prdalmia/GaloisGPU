@@ -301,7 +301,13 @@ __global__ void find_comp_min_elem(CSRGraphTex graph, struct comp_data comp, Loc
     }
   }
 }
-__global__ void union_components(CSRGraphTex graph, ComponentSpace cs, struct comp_data compdata, int level, AppendOnlyList el, AppendOnlyList ew, WorklistT in_wl, WorklistT out_wl, GlobalBarrier gb, Any ret_val)
+__global__ void union_components(CSRGraphTex graph, ComponentSpace cs, struct comp_data compdata, int level, AppendOnlyList el, AppendOnlyList ew, WorklistT in_wl, WorklistT out_wl, GlobalBarrier gb, Any ret_val, bool * global_sense,
+  bool * perSMsense,
+  bool * done,
+  unsigned int* global_count,
+  unsigned int* local_count,
+  unsigned int* last_block,
+  const int NUM_SM)
 {
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
@@ -441,4 +447,10 @@ void gg_main(CSRGraphTex& hg, CSRGraphTex& gg)
   printf("number of iterations: %d\n", level);
   printf("final mstwt: %llu\n", rweight);
   printf("total edges: %llu, total components: %llu\n", nmstedges, cs.numberOfComponentsHost());
+  cudaFree(global_sense);
+  cudaFree(perSMsense);
+  cudaFree(last_block);
+  cudaFree(local_count);
+  cudaFree(global_count);
+  cudaFree(done);
 }
