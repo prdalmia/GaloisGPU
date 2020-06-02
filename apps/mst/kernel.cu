@@ -428,7 +428,7 @@ void gg_main(CSRGraphTex& hg, CSRGraphTex& gg)
           *(retval.cpu_wr_ptr()) = 0;
           _rv.rv = retval.gpu_wr_ptr();
           pipe.out_wl().will_write();
-          union_components <<<union_components_blocks, __tb_union_components>>>(gg, cs, comp, level, el, ew, pipe.in_wl(), pipe.out_wl(), union_components_barrier, _rv, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
+          union_components <<<blocks, __tb_union_components>>>(gg, cs, comp, level, el, ew, pipe.in_wl(), pipe.out_wl(), union_components_barrier, _rv, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
           loopc = *(retval.cpu_rd_ptr()) > 0;
         }
         while (loopc);
