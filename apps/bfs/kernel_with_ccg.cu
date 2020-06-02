@@ -8,7 +8,7 @@
 namespace cg = cooperative_groups;
 
 void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
-#define TB_SIZE 256
+#define TB_SIZE 32
 const char *GGC_OPTIONS = "coop_conv=False $ outline_iterate_gb=True $ backoff_blocking_factor=4 $ parcomb=True $ np_schedulers=set(['fg', 'tb', 'wp']) $ cc_disable=set([]) $ tb_lb=True $ hacks=set([]) $ np_factor=8 $ instrument=set([]) $ unroll=[] $ read_props=None $ outline_iterate=True $ ignore_nested_errors=False $ np=True $ write_props=None $ quiet_cgen=True $ retry_backoff=True $ cuda.graph_type=basic $ cuda.use_worklist_slots=True $ cuda.worklist_type=basic";
 struct ThreadWork t_work;
 extern int start_node;
@@ -18,7 +18,7 @@ typedef int node_data_type;
 extern const node_data_type INF = INT_MAX;
 static const int __tb_bfs_kernel = TB_SIZE;
 static const int __tb_one = 1;
-static const int __tb_gg_main_pipe_1_gpu_gb = 256;
+static const int __tb_gg_main_pipe_1_gpu_gb = 32;
 __global__ void bfs_init(CSRGraph graph, int src)
 {
   unsigned tid = TID_1D;
@@ -387,6 +387,7 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
 {
   dim3 blocks, threads;
   kernel_sizing(gg, blocks, threads);
+  blocks = 640;
   t_work.init_thread_work(gg.nnodes);
   PipeContextT<Worklist2> wl;
   bfs_init <<<blocks, threads>>>(gg, start_node);
