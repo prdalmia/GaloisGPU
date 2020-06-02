@@ -53,11 +53,11 @@ __syncthreads();
 
 // do exponential backoff to reduce the number of times we pound the global
 // barrier
-//if(isMasterThread){
+if(isMasterThread){
 //if (*global_sense != *sense) {
-//for (int i = 0; i < backoff; ++i) { ; }
-//}
-//__syncthreads();
+ for (int i = 0; i < backoff; ++i) { ; }
+}
+__syncthreads();
 //}
 }
 }
