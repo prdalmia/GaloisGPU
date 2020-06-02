@@ -47,18 +47,18 @@ __threadfence();
 }
 else { // increase backoff to avoid repeatedly hammering global barrier
 // (capped) exponential backoff
-//backoff = (((backoff << 1) + 1) & (1024-1));
+backoff = (((backoff << 1) + 1) & (1024-1));
 }
 }
 __syncthreads();
 
 // do exponential backoff to reduce the number of times we pound the global
 // barrier
-//if(isMasterThread){
+if(isMasterThread){
 //if (*global_sense != *sense) {
-//for (int i = 0; i < backoff; ++i) { ; }
-//}
-//__syncthreads();
+for (int i = 0; i < backoff; ++i) { ; }
+}
+__syncthreads();
 //}
 }
 }
