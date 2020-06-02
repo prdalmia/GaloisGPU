@@ -148,6 +148,7 @@ void gg_main(CSRGraphTex& hg, CSRGraphTex& gg)
 {
   dim3 blocks, threads;
   kernel_sizing(gg, blocks, threads);
+  blocks = ggc_get_nSM()*32;
   static GlobalBarrierLifetime union_components_barrier;
   static bool union_components_barrier_inited;
   struct comp_data comp;
