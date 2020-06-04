@@ -344,6 +344,8 @@ void gg_main_pipe_1_wrapper(gfloat_p p2, gfloat_p p0, gfloat_p rp, int& iter, CS
   extern bool enable_lb;
   static const size_t gg_main_pipe_1_gpu_gb_residency = maximum_residency(gg_main_pipe_1_gpu_gb, __tb_gg_main_pipe_1_gpu_gb, 0);
   static const size_t gg_main_pipe_1_gpu_gb_blocks = GG_MIN(blocks.x, ggc_get_nSM() * gg_main_pipe_1_gpu_gb_residency);
+  void *kernelArgs[] = {
+    (void *)&p2,  (void *)&p0, (void *)&rp, (void *)&iter, (void *)&gg, (void *)&hg, (void *)&MAX_ITERATIONS,  (void *)&pipe, (void *)&cl_iter, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier
   if(!gg_main_pipe_1_gpu_gb_barrier_inited) { gg_main_pipe_1_gpu_gb_barrier.Setup(gg_main_pipe_1_gpu_gb_blocks); gg_main_pipe_1_gpu_gb_barrier_inited = true;};
   if (enable_lb)
   {
@@ -354,8 +356,7 @@ void gg_main_pipe_1_wrapper(gfloat_p p2, gfloat_p p0, gfloat_p rp, int& iter, CS
     int* cl_iter;
     check_cuda(cudaMalloc(&cl_iter, sizeof(int) * 1));
     check_cuda(cudaMemcpy(cl_iter, &iter, sizeof(int) * 1, cudaMemcpyHostToDevice));
-    void *kernelArgs[] = {
-      (void *)&p2,  (void *)&p0, (void *)&rp, (void *)&iter, (void *)&gg, (void *)&hg, (void *)&MAX_ITERATIONS,  (void *)&pipe, (void *)&cl_iter, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier
+    
   };
     // gg_main_pipe_1_gpu<<<1,1>>>(p2,p0,rp,iter,gg,hg,MAX_ITERATIONS,pipe,blocks,threads,cl_iter, enable_lb);
     cudaLaunchCooperativeKernel((void*)gg_main_pipe_1_gpu_gb, gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb,  kernelArgs);
