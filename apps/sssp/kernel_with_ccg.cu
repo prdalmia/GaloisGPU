@@ -39,6 +39,7 @@ __device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, 
 {
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
+  cg::grid_group grid = cg::this_grid(); 
 
   const unsigned __kernel_tb_size = TB_SIZE;
   index_type wlnode_end;
@@ -51,7 +52,8 @@ __device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, 
     pop = (in_wl).pop_id(wlnode, node);
     marks[node] = wlnode;
   }
-  gb.Sync();
+  //gb.Sync();
+  grid.sync();
   wlnode2_end = *((volatile index_type *) (in_wl).dindex);
   for (index_type wlnode2 = 0 + tid; wlnode2 < wlnode2_end; wlnode2 += nthreads)
   {
