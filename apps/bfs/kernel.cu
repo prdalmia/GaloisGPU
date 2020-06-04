@@ -6,6 +6,18 @@
 #include "thread_work.h"
 
 
+__device__ __forceinline__ bool ld_gbl_cg (const bool *addr)
+{
+    short t;
+#if defined(__LP64__) || defined(_WIN64)
+    asm ("ld.global.cg.u8 %0, [%1];" : "=h"(t) : "l"(addr));
+#else
+    asm ("ld.global.cg.u8 %0, [%1];" : "=h"(t) : "r"(addr));
+#endif
+    return (bool)t;
+}
+
+
 inline __device__ void cudaBarrierAtomicSubSRB(unsigned int * globalBarr,
   // numBarr represents the number of
   // TBs going to the barrier
@@ -167,8 +179,8 @@ cudaBarrierAtomicSRB(global_count, numBlocksAtBarr, isMasterThread , &perSMsense
 }
 else {
 if(isMasterThread){
-while (*global_sense != perSMsense[smID]){  
-__threadfence();
+while (ld_gbl_cg(global_sense) != perSMsense[smID]){  
+//__threadfence();
 }
 }
 
