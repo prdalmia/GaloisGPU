@@ -435,6 +435,11 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
   static GlobalBarrierLifetime gg_main_pipe_1_gpu_gb_barrier;
   static bool gg_main_pipe_1_gpu_gb_barrier_inited;
   extern bool enable_lb;
+  cudaEvent_t start;
+  cudaEvent_t stop;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+  float ms;
   static const size_t gg_main_pipe_1_gpu_gb_residency = maximum_residency(gg_main_pipe_1_gpu_gb, __tb_gg_main_pipe_1_gpu_gb, 0);
   static const size_t gg_main_pipe_1_gpu_gb_blocks = GG_MIN(blocks.x, ggc_get_nSM() * gg_main_pipe_1_gpu_gb_residency);
   if(!gg_main_pipe_1_gpu_gb_barrier_inited) { gg_main_pipe_1_gpu_gb_barrier.Setup(gg_main_pipe_1_gpu_gb_blocks); gg_main_pipe_1_gpu_gb_barrier_inited = true;};
@@ -450,10 +455,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     check_cuda(cudaMalloc(&cl_i, sizeof(int) * 1));
     check_cuda(cudaMemcpy(cl_curdelta, &curdelta, sizeof(int) * 1, cudaMemcpyHostToDevice));
     check_cuda(cudaMemcpy(cl_i, &i, sizeof(int) * 1, cudaMemcpyHostToDevice));
-    cudaEvent_t start;
-    cudaEvent_t stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    
     cudaEventRecord(start);
     void *kernelArgs[] = {
       (void *)&gg,  (void *)&glevel, (void *)&curdelta, (void *)&i, (void *)&DELTA, (void *)&remove_dups_barrier, (void *)&remove_dups_blocks,  (void *)&pipe, (void *)&cl_curdelta, (void *)&cl_i, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier
@@ -463,7 +465,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     cudaEventRecord(stop);
     cudaDeviceSynchronize();
     std::cout <<cudaGetLastError() <<std::endl;
-    float ms;
+    
     cudaEventElapsedTime(&ms, start, stop);
     std::cout << "time cuda only(ms) " << ms << std::endl;
     check_cuda(cudaMemcpy(&curdelta, cl_curdelta, sizeof(int) * 1, cudaMemcpyDeviceToHost));
