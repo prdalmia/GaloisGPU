@@ -166,14 +166,15 @@ if (blockIdx.x == last_block[smID]) {
   }
   __syncthreads();
 cudaBarrierAtomicSRB(global_count, numBlocksAtBarr, isMasterThread , &perSMsense[smID], global_sense);  
-//*done = 1;
+*done = 1;
 }
 else {
 if(isMasterThread){
-while (*global_sense != perSMsense[smID] ){  
+while (*global_sense != perSMsense[smID] && *done !=1){  
 __threadfence();
 }
 }
+*done = 0;
 __syncthreads();
 }    
 } else { // if only 1 TB on the SM, no need for the local barriers
