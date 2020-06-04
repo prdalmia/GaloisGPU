@@ -461,6 +461,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
   };
      cudaLaunchCooperativeKernel((void*)gg_main_pipe_1_gpu_gb, gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb,  kernelArgs);
     //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,glevel,curdelta,i,DELTA,remove_dups_barrier,remove_dups_blocks,pipe,cl_curdelta,cl_i, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
+    std::cout <<cudaGetLastError() <<std::endl;
     cudaEventRecord(stop);
     cudaDeviceSynchronize();
     float ms;
