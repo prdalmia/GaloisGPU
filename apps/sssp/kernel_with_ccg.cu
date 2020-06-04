@@ -370,32 +370,32 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
         pipe.in_wl().reset_next_slot();
       sssp_kernel_dev (gg, curdelta, enable_lb, pipe.in_wl(), pipe.out_wl(), pipe.re_wl());
       pipe.in_wl().swap_slots();
-      gb.Sync();
-      //grid.sync();
+      //gb.Sync();
+      grid.sync();
       pipe.retry2();
     }
     __syncthreads();
-    gb.Sync(); 
-    //grid.sync();
+    //gb.Sync(); 
+    grid.sync();
     pipe.advance2();
     if (tid == 0)
       pipe.in_wl().reset_next_slot();
     remove_dups_dev (glevel, pipe.in_wl(), pipe.out_wl(), gb);
     pipe.in_wl().swap_slots();
-    gb.Sync();
-    //grid.sync();
+    //gb.Sync();
+    grid.sync();
     pipe.advance2();
     i++;
     curdelta += DELTA;
   }
-  gb.Sync();
-  //grid.sync();
+  //gb.Sync();
+  grid.sync();
   if (tid == 0)
   {
     *cl_curdelta = curdelta;
     *cl_i = i;
   }
-__syncthreads();
+  grid.sync();
 }
 __global__ void gg_main_pipe_1_gpu(CSRGraph gg, gint_p glevel, int curdelta, int i, int DELTA, GlobalBarrier remove_dups_barrier, int remove_dups_blocks, PipeContextT<Worklist2> pipe, dim3 blocks, dim3 threads, int* cl_curdelta, int* cl_i, bool enable_lb)
 {
@@ -481,7 +481,7 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
 {
   dim3 blocks, threads;
   kernel_sizing(gg, blocks, threads);
-  //blocks = ggc_get_nSM()*32;
+  blocks = ggc_get_nSM()*32;
   t_work.init_thread_work(gg.nnodes);
   static GlobalBarrierLifetime remove_dups_barrier;
   static bool remove_dups_barrier_inited;
