@@ -455,7 +455,9 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     check_cuda(cudaMalloc(&cl_i, sizeof(int) * 1));
     check_cuda(cudaMemcpy(cl_curdelta, &curdelta, sizeof(int) * 1, cudaMemcpyHostToDevice));
     check_cuda(cudaMemcpy(cl_i, &i, sizeof(int) * 1, cudaMemcpyHostToDevice));
-    
+    int numBlocksPerSm;
+  cudaOccupancyMaxActiveBlocksPerMultiprocessor(&numBlocksPerSm, gg_main_pipe_1_gpu_gb, block_sz, 0);
+  std::cout << "The numBLocks per Sm is " <<  numBlocksPerSm << std::endl;
     cudaEventRecord(start);
     void *kernelArgs[] = {
       (void *)&gg,  (void *)&glevel, (void *)&curdelta, (void *)&i, (void *)&DELTA, (void *)&remove_dups_barrier, (void *)&remove_dups_blocks,  (void *)&pipe, (void *)&cl_curdelta, (void *)&cl_i, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier
@@ -468,7 +470,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     
     cudaEventElapsedTime(&ms, start, stop);
     std::cout << "time cuda only(ms) " << ms << std::endl;
-    //check_cuda(cudaMemcpy(&curdelta, cl_curdelta, sizeof(int) * 1, cudaMemcpyDeviceToHost));
+    check_cuda(cudaMemcpy(&curdelta, cl_curdelta, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaMemcpy(&i, cl_i, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaFree(cl_curdelta));
     check_cuda(cudaFree(cl_i));
