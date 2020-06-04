@@ -395,7 +395,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     *cl_curdelta = curdelta;
     *cl_i = i;
   }
-  grid.sync();
+  //grid.sync();
 }
 __global__ void gg_main_pipe_1_gpu(CSRGraph gg, gint_p glevel, int curdelta, int i, int DELTA, GlobalBarrier remove_dups_barrier, int remove_dups_blocks, PipeContextT<Worklist2> pipe, dim3 blocks, dim3 threads, int* cl_curdelta, int* cl_i, bool enable_lb)
 {
@@ -459,10 +459,11 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     int numBlocksPerSm;
   cudaOccupancyMaxActiveBlocksPerMultiprocessor(&numBlocksPerSm, gg_main_pipe_1_gpu_gb, __tb_gg_main_pipe_1_gpu_gb, 0);
   std::cout << "The numBLocks per Sm is " <<  numBlocksPerSm << std::endl;
-    cudaEventRecord(start);
+    
     void *kernelArgs[] = {
       (void *)&gg,  (void *)&glevel, (void *)&curdelta, (void *)&i, (void *)&DELTA, (void *)&remove_dups_barrier, (void *)&remove_dups_blocks,  (void *)&pipe, (void *)&cl_curdelta, (void *)&cl_i, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier
   };
+  cudaEventRecord(start);
      cudaLaunchCooperativeKernel((void*)gg_main_pipe_1_gpu_gb, gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb,  kernelArgs, 0, 0);
     //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,glevel,curdelta,i,DELTA,remove_dups_barrier,remove_dups_blocks,pipe,cl_curdelta,cl_i, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
     cudaEventRecord(stop);
