@@ -644,6 +644,7 @@ void gg_main(CSRGraphTy& hg, CSRGraphTy& gg)
   edge_blocks = hg.nedges / TB_SIZE + 1;
   node_blocks = hg.nnodes / TB_SIZE + 1;
   edge_marks.zero_gpu();
+  enable_lb=false;
   check_cuda(cudaEventCreate(&start));
   check_cuda(cudaEventCreate(&stop));
   check_cuda(cudaEventRecord(start));
