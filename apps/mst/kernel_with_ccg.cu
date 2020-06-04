@@ -174,7 +174,6 @@ void gg_main(CSRGraphTex& hg, CSRGraphTex& gg)
   int mw = 0;
   int last_mw = 0;
   
-  
   pipe = PipeContextT<WorklistT>(hg.nnodes);
   {
     {
@@ -201,7 +200,7 @@ void gg_main(CSRGraphTex& hg, CSRGraphTex& gg)
             (void *)&gg,  (void *)&cs, (void *)&comp, (void *)&level, (void *)&el, (void *)&ew, (void *)&pipe.in_wl(),  (void *)&pipe.out_wl(), (void *)&union_components_barrier, (void *)&_rv
         };
            cudaLaunchCooperativeKernel((void*)union_components, union_components_blocks, __tb_union_components,  kernelArgs);
-          //union_components <<<blocks, __tb_union_components>>>(gg, cs, comp, level, el, ew, pipe.in_wl(), pipe.out_wl(), union_components_barrier, _rv);
+           //union_components <<<blocks, __tb_union_components>>>(gg, cs, comp, level, el, ew, pipe.in_wl(), pipe.out_wl(), union_components_barrier, _rv);
           loopc = *(retval.cpu_rd_ptr()) > 0;
         }
         while (loopc);

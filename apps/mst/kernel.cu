@@ -51,7 +51,7 @@ __syncthreads();
 // barrier
 if(isMasterThread){
 //if (*global_sense != *sense) {
-for (int i = 0; i < backoff; ++i) { ; }
+//for (int i = 0; i < backoff; ++i) { ; }
 }
 __syncthreads();
 //}
