@@ -13,7 +13,7 @@ extern unsigned long DISCOUNT_TIME_NS;
 bool enable_lb = true;
 static const int __tb_one = 1;
 static const int __tb_prep_edge_src = TB_SIZE;
-static const int __tb_gg_main_pipe_4_gpu_gb = 256;
+static const int __tb_gg_main_pipe_4_gpu_gb = 32;
 static const int __tb_gg_main_pipe_3_gpu_gb = 256;
 __global__ void init(CSRGraph graph)
 {
