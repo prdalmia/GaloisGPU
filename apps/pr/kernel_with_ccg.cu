@@ -274,7 +274,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
 {
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
-
+  cg::grid_group grid = cg::this_grid();
   const unsigned __kernel_tb_size = __tb_gg_main_pipe_1_gpu_gb;
   iter = *cl_iter;
   {
@@ -282,7 +282,8 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
       pipe.in_wl().reset_next_slot();
     init_2_dev (gg, rp, pipe.in_wl(), pipe.out_wl());
     pipe.in_wl().swap_slots();
-    gb.Sync();
+    //gb.Sync();
+    grid.sync();
     pipe.advance2();
     while (pipe.in_wl().nitems())
     {
@@ -290,7 +291,8 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
         pipe.in_wl().reset_next_slot();
       pagerank_main_dev (gg, p0, rp, p2, enable_lb, pipe.in_wl(), pipe.out_wl());
       pipe.in_wl().swap_slots();
-      gb.Sync();
+      //gb.Sync();
+      grid.sync();
       pipe.advance2();
       iter++;
       if (iter >= MAX_ITERATIONS)
@@ -299,11 +301,13 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
       }
     }
   }
-  gb.Sync();
+  //gb.Sync();
+  grid.sync();
   if (tid == 0)
   {
     *cl_iter = iter;
   }
+  grid.sync();
 }
 __global__ void gg_main_pipe_1_gpu(gfloat_p p2, gfloat_p p0, gfloat_p rp, int iter, CSRGraph gg, CSRGraph hg, int MAX_ITERATIONS, PipeContextT<Worklist2> pipe, dim3 blocks, dim3 threads, int* cl_iter, bool enable_lb)
 {
