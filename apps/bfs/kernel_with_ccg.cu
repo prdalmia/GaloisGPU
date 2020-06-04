@@ -381,7 +381,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
     void *kernelArgs[] = {
       (void *)&gg,  (void *)&LEVEL, (void *)&pipe, (void *)&cl_LEVEL, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier
   };
-  cudaLaunchCooperativeKernel((void*)gg_main_pipe_1_gpu_gb, 640, __tb_gg_main_pipe_1_gpu_gb,  kernelArgs);
+  cudaLaunchCooperativeKernel((void*)gg_main_pipe_1_gpu_gb, gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb,  kernelArgs);
     std::cout <<cudaGetLastError() <<std::endl;
     //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
     check_cuda(cudaMemcpy(&LEVEL, cl_LEVEL, sizeof(int) * 1, cudaMemcpyDeviceToHost));
