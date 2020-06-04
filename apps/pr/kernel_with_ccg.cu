@@ -4,6 +4,8 @@
 #include "cub/cub.cuh"
 #include "cub/util_allocator.cuh"
 #include "thread_work.h"
+#include <cooperative_groups.h>
+namespace cg = cooperative_groups;
 
 void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
 #define TB_SIZE 32
@@ -352,9 +354,12 @@ void gg_main_pipe_1_wrapper(gfloat_p p2, gfloat_p p0, gfloat_p rp, int& iter, CS
     int* cl_iter;
     check_cuda(cudaMalloc(&cl_iter, sizeof(int) * 1));
     check_cuda(cudaMemcpy(cl_iter, &iter, sizeof(int) * 1, cudaMemcpyHostToDevice));
-
+    void *kernelArgs[] = {
+      (void *)&p2,  (void *)&p0, (void *)&rp, (void *)&iter, (void *)&gg, (void *)&hg, (void *)&MAX_ITERATIONS,  (void *)&pipe, (void *)&cl_iter, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier
+  };
     // gg_main_pipe_1_gpu<<<1,1>>>(p2,p0,rp,iter,gg,hg,MAX_ITERATIONS,pipe,blocks,threads,cl_iter, enable_lb);
-    gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(p2,p0,rp,iter,gg,hg,MAX_ITERATIONS,pipe,cl_iter, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
+    cudaLaunchCooperativeKernel((void*)gg_main_pipe_1_gpu_gb, gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb,  kernelArgs);
+    //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(p2,p0,rp,iter,gg,hg,MAX_ITERATIONS,pipe,cl_iter, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
     check_cuda(cudaMemcpy(&iter, cl_iter, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaFree(cl_iter));
   }
@@ -363,7 +368,7 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
 {
   dim3 blocks, threads;
   kernel_sizing(gg, blocks, threads);
-  blocks = 2560;
+  blocks = ggc_get_nSM()*32;
   t_work.init_thread_work(gg.nnodes);
   static GlobalBarrierLifetime remove_dups_barrier;
   static bool remove_dups_barrier_inited;
