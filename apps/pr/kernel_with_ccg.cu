@@ -306,7 +306,6 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
   if (tid == 0)
   {
     *cl_iter = iter;
-    printf("Asli chal re si\n");
   }
   //grid.sync();
 }
