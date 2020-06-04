@@ -352,10 +352,9 @@ void gg_main_pipe_1_wrapper(gfloat_p p2, gfloat_p p0, gfloat_p rp, int& iter, CS
   }
   else
   {
-    
+    int* cl_iter;
     check_cuda(cudaMalloc(&cl_iter, sizeof(int) * 1));
     check_cuda(cudaMemcpy(cl_iter, &iter, sizeof(int) * 1, cudaMemcpyHostToDevice));
-    int* cl_iter;
   void *kernelArgs[] = {
     (void *)&p2,  (void *)&p0, (void *)&rp, (void *)&iter, (void *)&gg, (void *)&hg, (void *)&MAX_ITERATIONS,  (void *)&pipe, (void *)&cl_iter, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier
   };
