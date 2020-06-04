@@ -173,8 +173,9 @@ if(isMasterThread){
 while (*global_sense != perSMsense[smID] && *done !=1){  
 __threadfence();
 }
-}
 *done = 0;
+}
+
 __syncthreads();
 }    
 } else { // if only 1 TB on the SM, no need for the local barriers
