@@ -358,7 +358,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
 {
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
-  cg::grid_group grid = cg::this_grid(); 
+  //cg::grid_group grid = cg::this_grid(); 
   const unsigned __kernel_tb_size = TB_SIZE;
   curdelta = *cl_curdelta;
   i = *cl_i;
