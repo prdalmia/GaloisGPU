@@ -456,7 +456,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     check_cuda(cudaMemcpy(cl_curdelta, &curdelta, sizeof(int) * 1, cudaMemcpyHostToDevice));
     check_cuda(cudaMemcpy(cl_i, &i, sizeof(int) * 1, cudaMemcpyHostToDevice));
     int numBlocksPerSm;
-  cudaOccupancyMaxActiveBlocksPerMultiprocessor(&numBlocksPerSm, gg_main_pipe_1_gpu_gb, block_sz, 0);
+  cudaOccupancyMaxActiveBlocksPerMultiprocessor(&numBlocksPerSm, gg_main_pipe_1_gpu_gb, __tb_gg_main_pipe_1_gpu_gb, 0);
   std::cout << "The numBLocks per Sm is " <<  numBlocksPerSm << std::endl;
     cudaEventRecord(start);
     void *kernelArgs[] = {
