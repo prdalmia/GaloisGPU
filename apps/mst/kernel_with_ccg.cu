@@ -173,7 +173,7 @@ void gg_main(CSRGraphTex& hg, CSRGraphTex& gg)
   int level = 1;
   int mw = 0;
   int last_mw = 0;
-  void *kernelArgs[];
+  void *kernelArgs;
   
   pipe = PipeContextT<WorklistT>(hg.nnodes);
   {
