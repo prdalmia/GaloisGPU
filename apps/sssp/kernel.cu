@@ -241,7 +241,13 @@ __global__ void kernel(CSRGraph graph, int src)
     graph.node_data[node] = (node == src) ? 0 : INF ;
   }
 }
-__device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, GlobalBarrier gb)
+__device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, GlobalBarrier gb, bool * global_sense,
+  bool * perSMsense,
+  bool * done,
+  unsigned int* global_count,
+  unsigned int* local_count,
+  unsigned int* last_block,
+  const int NUM_SM)
 {
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
@@ -257,7 +263,8 @@ __device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, 
     pop = (in_wl).pop_id(wlnode, node);
     marks[node] = wlnode;
   }
-  gb.Sync();
+  //gb.Sync();
+  kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
   wlnode2_end = *((volatile index_type *) (in_wl).dindex);
   for (index_type wlnode2 = 0 + tid; wlnode2 < wlnode2_end; wlnode2 += nthreads)
   {
@@ -592,7 +599,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     pipe.advance2();
     if (tid == 0)
       pipe.in_wl().reset_next_slot();
-    remove_dups_dev (glevel, pipe.in_wl(), pipe.out_wl(), gb);
+    remove_dups_dev (glevel, pipe.in_wl(), pipe.out_wl(), gb, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
     pipe.in_wl().swap_slots();
     //gb.Sync();
     kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
