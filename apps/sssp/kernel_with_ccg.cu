@@ -456,9 +456,13 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     cudaEventCreate(&stop);
     cudaEventRecord(start);
     // gg_main_pipe_1_gpu<<<1,1>>>(gg,glevel,curdelta,i,DELTA,remove_dups_barrier,remove_dups_blocks,pipe,blocks,threads,cl_curdelta,cl_i, enable_lb);
-    gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,glevel,curdelta,i,DELTA,remove_dups_barrier,remove_dups_blocks,pipe,cl_curdelta,cl_i, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
-    cudaDeviceSynchronize();
+    void *kernelArgs[] = {
+      (void *)&gg,  (void *)&glevel, (void *)&curdelta, (void *)&i, (void *)&DELTA, (void *)&remove_dups_barrier, (void *)&remove_dups_blocks,  (void *)&pipe, (void *)&cl_curdelta, (void *)&cl_i, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier
+  };
+     cudaLaunchCooperativeKernel((void*)gg_main_pipe_1_gpu_gb, gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb,  kernelArgs);
+    //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,glevel,curdelta,i,DELTA,remove_dups_barrier,remove_dups_blocks,pipe,cl_curdelta,cl_i, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
     cudaEventRecord(stop);
+    cudaDeviceSynchronize();
     float ms;
     cudaEventElapsedTime(&ms, start, stop);
     std::cout << "time cuda only(ms) " << ms << std::endl;
