@@ -162,15 +162,12 @@ cudaBarrierAtomicLocalSRB(&local_count[smID], &last_block[smID], smID, numTBs_pe
 // only 1 TB per SM needs to do the global barrier since we synchronized
 // the TBs locally first
 if (blockIdx.x == last_block[smID]) {
-  if(isMasterThread && perSM_blockID == 0){    
-  }
-  __syncthreads();
 cudaBarrierAtomicSRB(global_count, numBlocksAtBarr, isMasterThread , &perSMsense[smID], global_sense);  
-*done = 1;
+//*done = 1;
 }
 else {
 if(isMasterThread){
-while (*global_sense != perSMsense[smID] && *done !=1){  
+while (*global_sense != perSMsense[smID]){  
 __threadfence();
 }
 }
@@ -214,11 +211,12 @@ int numTBs_perSM = (int)ceil((float)gridDim.x / numBlocksAtBarr);
 joinBarrier_helperSRB(global_sense, perSMsense, done, global_count, local_count, last_block,
 numBlocksAtBarr, smID, perSM_blockID, numTBs_perSM,
 isMasterThread);
-
+/*
 if(isMasterThread && blockIdx.x == 0){
   *done =0;
 }
 __syncthreads();
+*/
 }
 
 void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
