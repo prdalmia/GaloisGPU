@@ -174,6 +174,7 @@ while (*global_sense != perSMsense[smID] && *done !=1){
 __threadfence();
 }
 *done = 0;
+__threadfence();
 }
 
 __syncthreads();
