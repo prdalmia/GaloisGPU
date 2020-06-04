@@ -307,7 +307,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
   {
     *cl_iter = iter;
   }
-  grid.sync();
+  //grid.sync();
 }
 __global__ void gg_main_pipe_1_gpu(gfloat_p p2, gfloat_p p0, gfloat_p rp, int iter, CSRGraph gg, CSRGraph hg, int MAX_ITERATIONS, PipeContextT<Worklist2> pipe, dim3 blocks, dim3 threads, int* cl_iter, bool enable_lb)
 {
