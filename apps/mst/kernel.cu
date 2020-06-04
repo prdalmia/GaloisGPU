@@ -331,8 +331,8 @@ __global__ void union_components(CSRGraphTex graph, ComponentSpace cs, struct co
       srccomp = cs.find(node);
       dstcomp = cs.find(graph.getAbsDestination(compdata.minedge[node]));
     }
-    //gb.Sync();
-    kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
+    gb.Sync();
+    //kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
     if (srccomp != dstcomp)
     {
       if (!cs.unify(srccomp, dstcomp))
@@ -345,8 +345,8 @@ __global__ void union_components(CSRGraphTex graph, ComponentSpace cs, struct co
         ew.push(compdata.minwt[node]);
       }
     }
-    //gb.Sync();
-    kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
+    gb.Sync();
+    //kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
     if (r)
     {
       ret_val.return_(true);
