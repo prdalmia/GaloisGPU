@@ -173,8 +173,6 @@ if(isMasterThread){
 while (*global_sense != perSMsense[smID] && *done !=1){  
 __threadfence();
 }
-*done = 0;
-__threadfence();
 }
 
 __syncthreads();
@@ -212,9 +210,15 @@ const int perSM_blockID = (blockIdx.x / numBlocksAtBarr);
 
 int numTBs_perSM = (int)ceil((float)gridDim.x / numBlocksAtBarr);
 
+
 joinBarrier_helperSRB(global_sense, perSMsense, done, global_count, local_count, last_block,
 numBlocksAtBarr, smID, perSM_blockID, numTBs_perSM,
 isMasterThread);
+
+if(isMasterThread && blockIdx.x == 0){
+  *done =0;
+}
+__syncthreads();
 }
 
 void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
