@@ -378,11 +378,23 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
 
     // gg_main_pipe_1_gpu<<<1,1>>>(gg,LEVEL,pipe,blocks,threads,cl_LEVEL, enable_lb);
     //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
+   
+    
     void *kernelArgs[] = {
       (void *)&gg,  (void *)&LEVEL, (void *)&pipe, (void *)&cl_LEVEL, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier
   };
+  cudaEvent_t start;
+  cudaEvent_t stop;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+  cudaEventRecord(start);
   cudaLaunchCooperativeKernel((void*)gg_main_pipe_1_gpu_gb, gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb,  kernelArgs);
-    std::cout <<cudaGetLastError() <<std::endl;
+  cudaEventRecord(stop);
+  cudaDeviceSynchronize();
+  float ms;
+  cudaEventElapsedTime(&ms, start, stop);
+  std::cout << "time cuda only(ms) " << ms << std::endl;
+  std::cout <<cudaGetLastError() <<std::endl;
     //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
     check_cuda(cudaMemcpy(&LEVEL, cl_LEVEL, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaFree(cl_LEVEL));
