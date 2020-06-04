@@ -6,7 +6,7 @@
 #include "thread_work.h"
 
 void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
-#define TB_SIZE 256
+#define TB_SIZE 32
 const char *GGC_OPTIONS = "coop_conv=False $ outline_iterate_gb=True $ backoff_blocking_factor=4 $ parcomb=True $ np_schedulers=set(['wp', 'fg']) $ cc_disable=set([]) $ tb_lb=False $ hacks=set([]) $ np_factor=8 $ instrument=set([]) $ unroll=[] $ read_props=None $ outline_iterate=True $ ignore_nested_errors=False $ np=True $ write_props=None $ quiet_cgen=True $ retry_backoff=True $ cuda.graph_type=basic $ cuda.use_worklist_slots=True $ cuda.worklist_type=basic";
 struct ThreadWork t_work;
 bool enable_lb = false;
@@ -19,7 +19,7 @@ float* P_NEXT ;
 extern const float ALPHA = 0.85;
 extern const float EPSILON = 0.000001;
 extern int MAX_ITERATIONS ;
-static const int __tb_gg_main_pipe_1_gpu_gb = 256;
+static const int __tb_gg_main_pipe_1_gpu_gb = 32;
 static const int __tb_one = 1;
 static const int __tb_pagerank_main = TB_SIZE;
 static const int __tb_remove_dups = TB_SIZE;
