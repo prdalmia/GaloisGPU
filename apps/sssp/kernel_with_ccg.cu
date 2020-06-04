@@ -374,7 +374,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
       //grid.sync();
       pipe.retry2();
     }
-    //__syncthreads();
+    __syncthreads();
     gb.Sync(); 
     //grid.sync();
     pipe.advance2();
