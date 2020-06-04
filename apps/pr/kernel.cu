@@ -593,8 +593,17 @@ void gg_main_pipe_1_wrapper(gfloat_p p2, gfloat_p p0, gfloat_p rp, int& iter, CS
        cudaMemset(&local_count[i], 0, sizeof(unsigned int));
        cudaMemset(&last_block[i], 0, sizeof(unsigned int));
      }
+    cudaEvent_t start;
+    cudaEvent_t stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    cudaEventRecord(start);
     // gg_main_pipe_1_gpu<<<1,1>>>(p2,p0,rp,iter,gg,hg,MAX_ITERATIONS,pipe,blocks,threads,cl_iter, enable_lb);
     gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(p2,p0,rp,iter,gg,hg,MAX_ITERATIONS,pipe,cl_iter, enable_lb, gg_main_pipe_1_gpu_gb_barrier, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
+    cudaEventRecord(stop);
+    float ms;
+    cudaEventElapsedTime(&ms, start, stop);
+    std::cout << "time cuda only(ms) " << ms << std::endl;
     check_cuda(cudaMemcpy(&iter, cl_iter, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaFree(cl_iter));
     cudaFree(global_sense);
