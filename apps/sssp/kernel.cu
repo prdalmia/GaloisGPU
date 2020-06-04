@@ -241,13 +241,13 @@ __global__ void kernel(CSRGraph graph, int src)
     graph.node_data[node] = (node == src) ? 0 : INF ;
   }
 }
-__device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, GlobalBarrier gb, bool * global_sense,
-  bool * perSMsense,
-  bool * done,
-  unsigned int* global_count,
-  unsigned int* local_count,
-  unsigned int* last_block,
-  const int NUM_SM)
+__device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, GlobalBarrier gb, bool * global_sense = NULL,
+  bool * perSMsense = NULL,
+  bool * done = NULL,
+  unsigned int* global_count = NULL,
+  unsigned int* local_count = NULL,
+  unsigned int* last_block = NULL,
+  const int NUM_SM = 0)
 {
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
