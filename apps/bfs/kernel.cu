@@ -241,7 +241,7 @@ typedef int node_data_type;
 extern const node_data_type INF = INT_MAX;
 static const int __tb_bfs_kernel = TB_SIZE;
 static const int __tb_one = 1;
-static const int __tb_gg_main_pipe_1_gpu_gb = 32;
+static const int __tb_gg_main_pipe_1_gpu_gb = TB_SIZE;
 __global__ void bfs_init(CSRGraph graph, int src)
 {
   unsigned tid = TID_1D;
