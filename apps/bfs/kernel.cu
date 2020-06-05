@@ -642,7 +642,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
     cudaDeviceSynchronize();
     float ms;
     cudaEventElapsedTime(&ms, start, stop);
-    std::cout << "time cuda only(ms) " << ms << gg_main_pipe_1_gpu_gb_blocks << std::endl;
+    std::cout << "time cuda only(ms) " << ms << "blocks is" << gg_main_pipe_1_gpu_gb_blocks << std::endl;
     check_cuda(cudaMemcpy(&LEVEL, cl_LEVEL, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaFree(cl_LEVEL));
     cudaFree(global_sense);
