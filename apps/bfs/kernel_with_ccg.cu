@@ -404,7 +404,7 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
 {
   dim3 blocks, threads;
   kernel_sizing(gg, blocks, threads);
-  blocks = ggc_get_nSM()*2;
+  blocks = ggc_get_nSM()*1;
   t_work.init_thread_work(gg.nnodes);
   PipeContextT<Worklist2> wl;
   bfs_init <<<blocks, threads>>>(gg, start_node);
