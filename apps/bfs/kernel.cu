@@ -59,7 +59,7 @@ __threadfence();
 }
 else { // increase backoff to avoid repeatedly hammering global barrier
 // (capped) exponential backoff
-backoff = (((backoff << 1) + 1) & (64-1));
+backoff = (((backoff << 1) + 1) & (1024-1));
 }
 }
 __syncthreads();
@@ -68,7 +68,7 @@ __syncthreads();
 // barrier
 if(isMasterThread){
 //if (*global_sense != *sense) {
-for (int i = 0; i < backoff; ++i) { ; }
+//for (int i = 0; i < backoff; ++i) { ; }
 }
 __syncthreads();
 //}
@@ -174,6 +174,9 @@ cudaBarrierAtomicLocalSRB(&local_count[smID], &last_block[smID], smID, numTBs_pe
 // only 1 TB per SM needs to do the global barrier since we synchronized
 // the TBs locally first
 if (blockIdx.x == last_block[smID]) {
+  if(isMasterThread && perSM_blockID == 0){    
+  }
+  __syncthreads();
 cudaBarrierAtomicSRB(global_count, numBlocksAtBarr, isMasterThread , &perSMsense[smID], global_sense);  
 }
 else {
