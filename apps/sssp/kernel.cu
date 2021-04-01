@@ -42,7 +42,7 @@ if (atomicCAS(globalBarr, numBarr, 0) == numBarr) {
 // atomicCAS acts as a load acquire, need TF to enforce ordering
 __threadfence();
 *global_sense = *sense;
-__threadfence();
+//__threadfence();
 }
 else { // increase backoff to avoid repeatedly hammering global barrier
 // (capped) exponential backoff
@@ -55,7 +55,7 @@ __syncthreads();
 // barrier
 if(isMasterThread){
 //if (*global_sense != *sense) {
- for (int i = 0; i < backoff; ++i) { ; }
+// for (int i = 0; i < backoff; ++i) { ; }
 }
 __syncthreads();
 //}
