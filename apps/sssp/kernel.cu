@@ -746,7 +746,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     unsigned int* global_count;
     unsigned int* local_count; 
     unsigned int *last_block;
-    bool naive = true;
+    bool naive = false;
     int NUM_SM = ggc_get_nSM();
     cudaMallocManaged((void **)&global_sense,sizeof(bool));
     cudaMallocManaged((void **)&done,sizeof(bool));
@@ -775,7 +775,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     cudaDeviceSynchronize();
     float ms;
     cudaEventElapsedTime(&ms, start, stop);
-    std::cout << "time cuda only(ms) " << ms << std::endl;
+    std::cout << "time cuda only(ms) " << ms << " blocks is " << gg_main_pipe_1_gpu_gb_blocks << " Min was decided between " << blocks.x << " and " << ggc_get_nSM() * gg_main_pipe_1_gpu_gb_residency <<   std::endl;
     check_cuda(cudaMemcpy(&curdelta, cl_curdelta, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaMemcpy(&i, cl_i, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaFree(cl_curdelta));
