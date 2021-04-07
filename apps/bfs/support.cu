@@ -27,7 +27,6 @@ void process_prog_opt(char c, char *optarg) {
     block_factor = atoi(optarg);
   }
   }
-}
 
 void output(CSRGraphTy &g, const char *output_file) {
   FILE *f;
