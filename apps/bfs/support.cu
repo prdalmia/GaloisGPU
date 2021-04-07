@@ -9,7 +9,7 @@ const char *prog_args_usage = "-l: enable thread block load balancer (by default
 extern const int INF;
 int start_node = 0;
 extern bool enable_lb;
-extern bool block_factor;
+extern int block_factor;
 
 int process_prog_arg(int argc, char *argv[], int arg_start) {
    return 1;
