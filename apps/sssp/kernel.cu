@@ -5,6 +5,9 @@
 #include "cub/util_allocator.cuh"
 #include "thread_work.h"
 
+#define BLOCK_FACTOR 8
+#define NAIVE 0  
+
 __device__ __forceinline__ bool ld_gbl_cg (const bool *addr)
 {
     short t;
@@ -746,7 +749,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     unsigned int* global_count;
     unsigned int* local_count; 
     unsigned int *last_block;
-    bool naive = false;
+    bool naive = NAIVE;
     int NUM_SM = ggc_get_nSM();
     cudaMallocManaged((void **)&global_sense,sizeof(bool));
     cudaMallocManaged((void **)&done,sizeof(bool));
@@ -792,7 +795,7 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
 {
   dim3 blocks, threads;
   kernel_sizing(gg, blocks, threads);
-  blocks = ggc_get_nSM()*32;
+  blocks = ggc_get_nSM()*BLOCK_FACTOR;
   t_work.init_thread_work(gg.nnodes);
   static GlobalBarrierLifetime remove_dups_barrier;
   static bool remove_dups_barrier_inited;
