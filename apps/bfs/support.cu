@@ -9,6 +9,7 @@ const char *prog_args_usage = "-l: enable thread block load balancer (by default
 extern const int INF;
 int start_node = 0;
 extern bool enable_lb;
+extern bool block_factor;
 
 int process_prog_arg(int argc, char *argv[], int arg_start) {
    return 1;
@@ -22,6 +23,9 @@ void process_prog_opt(char c, char *optarg) {
    if(c == 'l') {
 	   enable_lb = true;
    }
+   if(c == 'b') {
+    block_factor = atoi(optarg);
+  }
 }
 
 void output(CSRGraphTy &g, const char *output_file) {
