@@ -5,6 +5,65 @@
 #include "cub/util_allocator.cuh"
 #include "thread_work.h"
 
+__device__ __forceinline__ bool ld_gbl_cg (const bool *addr)
+{
+    short t;
+#if defined(__LP64__) || defined(_WIN64)
+    asm ("ld.global.cg.u8 %0, [%1];" : "=h"(t) : "l"(addr));
+#else
+    asm ("ld.global.cg.u8 %0, [%1];" : "=h"(t) : "r"(addr));
+#endif
+    return (bool)t;
+}
+
+
+inline __device__ void cudaBarrierAtomicNaiveSRB(unsigned int *globalBarr,
+  // numBarr represents the number
+  // of TBs going to the barrier
+  const unsigned int numBarr,
+  int backoff,
+  const bool isMasterThread,
+  bool * volatile global_sense) {
+__syncthreads();
+__shared__ bool s;
+if (isMasterThread) {
+s = !(ld_gbl_cg(global_sense));
+__threadfence();
+// atomicInc effectively adds 1 to atomic for each TB that's part of the
+// global barrier.
+atomicInc(globalBarr, 0x7FFFFFFF);
+ //printf("Global barr is %d and numbarr is %d\n", *globalBarr, numBarr);
+}
+__syncthreads();
+
+while (ld_gbl_cg(global_sense) != s) {
+if (isMasterThread) {
+/*
+Once the atomic's value == numBarr, then reset the value to 0 and
+proceed because all of the TBs have reached the global barrier.
+*/
+if (atomicCAS(globalBarr, numBarr, 0) == numBarr) {
+// atomicCAS acts as a load acquire, need TF to enforce ordering
+__threadfence();
+*global_sense = s;
+} else { // increase backoff to avoid repeatedly hammering global barrier
+// (capped) exponential backoff
+backoff = (((backoff << 1) + 1) & (1024 - 1));
+}
+}
+__syncthreads();
+
+// do exponential backoff to reduce the number of times we pound the global
+// barrier
+if (ld_gbl_cg(global_sense) != s) {
+for (int i = 0; i < backoff; ++i) {
+;
+}
+__syncthreads();
+}
+}
+}
+
 inline __device__ void cudaBarrierAtomicSubSRB(unsigned int * globalBarr,
     // numBarr represents the number of
     // TBs going to the barrier
@@ -153,9 +212,10 @@ const unsigned int numBlocksAtBarr,
 const int smID,
 const int perSM_blockID,
 const int numTBs_perSM,
-const bool isMasterThread) {                                 
+const bool isMasterThread,
+bool naive) {                                 
 __syncthreads();
-if (numTBs_perSM > 1) {
+if (numTBs_perSM > 1 && naive = false) {
 cudaBarrierAtomicLocalSRB(&local_count[smID], &last_block[smID], smID, numTBs_perSM, isMasterThread, &perSMsense[smID]);
 
 // only 1 TB per SM needs to do the global barrier since we synchronized
@@ -176,7 +236,12 @@ __threadfence();
 __syncthreads();
 }    
 } else { // if only 1 TB on the SM, no need for the local barriers
-cudaBarrierAtomicSRB(global_count, numBlocksAtBarr, isMasterThread,  &perSMsense[smID], global_sense);
+  __shared__ int backoff;
+  if (isMasterThread) {
+    backoff = 1;
+  }
+  __syncthreads();
+cudaBarrierAtomicNaiveSRB(global_count, (numBlocksAtBarr*numTBs_perSM), backoff,  isMasterThread,  global_sense);
 }
 }
 
@@ -187,7 +252,8 @@ bool * done,
 unsigned int* global_count,
 unsigned int* local_count,
 unsigned int* last_block,
-const int NUM_SM)
+const int NUM_SM,
+bool naive)
 {
 
 // local variables
@@ -210,7 +276,7 @@ int numTBs_perSM = (int)ceil((float)gridDim.x / numBlocksAtBarr);
 
 joinBarrier_helperSRB(global_sense, perSMsense, done, global_count, local_count, last_block,
 numBlocksAtBarr, smID, perSM_blockID, numTBs_perSM,
-isMasterThread);
+isMasterThread, naive);
 }
 
 void kernel_sizing(CSRGraph &, dim3 &, dim3 &);
@@ -247,7 +313,8 @@ __device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, 
   unsigned int* global_count = NULL,
   unsigned int* local_count = NULL,
   unsigned int* last_block = NULL,
-  const int NUM_SM = 0)
+  const int NUM_SM = 0,
+ bool naive = false)
 {
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
@@ -264,7 +331,7 @@ __device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, 
     marks[node] = wlnode;
   }
   //gb.Sync();
-  kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
+  kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM, naive);
   wlnode2_end = *((volatile index_type *) (in_wl).dindex);
   for (index_type wlnode2 = 0 + tid; wlnode2 < wlnode2_end; wlnode2 += nthreads)
   {
@@ -573,7 +640,8 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     unsigned int* global_count,
     unsigned int* local_count,
     unsigned int* last_block,
-    const int NUM_SM)
+    const int NUM_SM,
+    bool naive)
 {
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D; 
@@ -589,27 +657,27 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
       sssp_kernel_dev (gg, curdelta, enable_lb, pipe.in_wl(), pipe.out_wl(), pipe.re_wl());
       pipe.in_wl().swap_slots();
       //gb.Sync();
-      kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
+      kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM, naive);
       //grid.sync();
       pipe.retry2();
     }
     //__syncthreads();
     //gb.Sync();
-    kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
+    kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM, naive);     
     pipe.advance2();
     if (tid == 0)
       pipe.in_wl().reset_next_slot();
-    remove_dups_dev (glevel, pipe.in_wl(), pipe.out_wl(), gb, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
+    remove_dups_dev (glevel, pipe.in_wl(), pipe.out_wl(), gb, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM, naive);
     pipe.in_wl().swap_slots();
     //gb.Sync();
-    kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
+    kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM, naive);     
     //grid.sync();
     pipe.advance2();
     i++;
     curdelta += DELTA;
   }
   //gb.Sync();
-  kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
+  kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM, naive);
   //grid.sync();
   if (tid == 0)
   {
@@ -678,6 +746,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     unsigned int* global_count;
     unsigned int* local_count; 
     unsigned int *last_block;
+    bool naive = false;
     int NUM_SM = ggc_get_nSM();
     cudaMallocManaged((void **)&global_sense,sizeof(bool));
     cudaMallocManaged((void **)&done,sizeof(bool));
@@ -701,7 +770,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
      cudaEventCreate(&stop);
      cudaEventRecord(start);
     // gg_main_pipe_1_gpu<<<1,1>>>(gg,glevel,curdelta,i,DELTA,remove_dups_barrier,remove_dups_blocks,pipe,blocks,threads,cl_curdelta,cl_i, enable_lb);
-    gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,glevel,curdelta,i,DELTA,remove_dups_barrier,remove_dups_blocks,pipe,cl_curdelta,cl_i, enable_lb, gg_main_pipe_1_gpu_gb_barrier, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
+    gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,glevel,curdelta,i,DELTA,remove_dups_barrier,remove_dups_blocks,pipe,cl_curdelta,cl_i, enable_lb, gg_main_pipe_1_gpu_gb_barrier, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM, naive);
     cudaEventRecord(stop);
     cudaDeviceSynchronize();
     float ms;
