@@ -79,7 +79,7 @@ if (isMasterThread)
 {
 //printf("Inside global Barrier for blockID %d and sense is %d and global sense is %d\n", blockIdx.x, *sense, *global_sense);
 // atomicInc acts as a store release, need TF to enforce ordering
-__threadfence();
+__threadfence_block();
 // atomicInc effectively adds 1 to atomic for each TB that's part of the
 // global barrier.
 atomicInc(globalBarr, 0x7FFFFFFF);
