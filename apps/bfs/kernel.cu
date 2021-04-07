@@ -669,7 +669,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
     bool * global_sense;
     bool* perSMsense;
     bool * done;
-    bool naive = true;
+    bool naive = false;
     unsigned int* global_count;
     unsigned int* local_count; 
     unsigned int *last_block;
