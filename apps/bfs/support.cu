@@ -2,7 +2,7 @@
 
 #include "gg.h"
 
-const char *prog_opts = "ls:";
+const char *prog_opts = "lsb:";
 const char *prog_usage = "[-l] [-s startNode]";
 const char *prog_args_usage = "-l: enable thread block load balancer (by default false)";
 
