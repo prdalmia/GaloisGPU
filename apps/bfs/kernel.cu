@@ -18,6 +18,54 @@ __device__ __forceinline__ bool ld_gbl_cg (const bool *addr)
 }
 
 
+inline __device__ void cudaBarrierAtomicNaiveSRB(unsigned int *globalBarr,
+  // numBarr represents the number
+  // of TBs going to the barrier
+  const unsigned int numBarr,
+  int backoff,
+  const bool isMasterThread,
+  bool * volatile global_sense) {
+__syncthreads();
+__shared__ bool s;
+if (isMasterThread) {
+s = !(ld_gbl_cg(global_sense));
+__threadfence();
+// atomicInc effectively adds 1 to atomic for each TB that's part of the
+// global barrier.
+atomicInc(globalBarr, 0x7FFFFFFF);
+ //printf("Global barr is %d and numbarr is %d\n", *globalBarr, numBarr);
+}
+__syncthreads();
+
+while (ld_gbl_cg(global_sense) != s) {
+if (isMasterThread) {
+/*
+Once the atomic's value == numBarr, then reset the value to 0 and
+proceed because all of the TBs have reached the global barrier.
+*/
+if (atomicCAS(globalBarr, numBarr, 0) == numBarr) {
+// atomicCAS acts as a load acquire, need TF to enforce ordering
+__threadfence();
+*global_sense = s;
+} else { // increase backoff to avoid repeatedly hammering global barrier
+// (capped) exponential backoff
+backoff = (((backoff << 1) + 1) & (1024 - 1));
+}
+}
+__syncthreads();
+
+// do exponential backoff to reduce the number of times we pound the global
+// barrier
+if (ld_gbl_cg(global_sense) != s) {
+for (int i = 0; i < backoff; ++i) {
+;
+}
+__syncthreads();
+}
+}
+}
+
+
 inline __device__ void cudaBarrierAtomicSubSRB(unsigned int * globalBarr,
   // numBarr represents the number of
   // TBs going to the barrier
@@ -165,9 +213,10 @@ const unsigned int numBlocksAtBarr,
 const int smID,
 const int perSM_blockID,
 const int numTBs_perSM,
-const bool isMasterThread) {                                 
+const bool isMasterThread,
+bool naive) {                                 
 __syncthreads();
-if (numTBs_perSM > 1) {
+if (numTBs_perSM > 1 && !naive) {
 cudaBarrierAtomicLocalSRB(&local_count[smID], &last_block[smID], smID, numTBs_perSM, isMasterThread, &perSMsense[smID]);
 
 // only 1 TB per SM needs to do the global barrier since we synchronized
@@ -188,7 +237,12 @@ __threadfence();
 __syncthreads();
 }    
 } else { // if only 1 TB on the SM, no need for the local barriers
-cudaBarrierAtomicSRB(global_count, numBlocksAtBarr, isMasterThread,  &perSMsense[smID], global_sense);
+  __shared__ int backoff;
+  if (isMasterThread) {
+    backoff = 1;
+  }
+  __syncthreads();
+cudaBarrierAtomicNaiveSRB(global_count, (numBlocksAtBarr*numTBs_perSM), backoff,  isMasterThread,  global_sense);
 }
 }
 
@@ -199,7 +253,8 @@ bool * done,
 unsigned int* global_count,
 unsigned int* local_count,
 unsigned int* last_block,
-const int NUM_SM)
+const int NUM_SM,
+bool naive)
 {
 
 // local variables
@@ -223,7 +278,7 @@ int numTBs_perSM = (int)ceil((float)gridDim.x / numBlocksAtBarr);
 
 joinBarrier_helperSRB(global_sense, perSMsense, done, global_count, local_count, last_block,
 numBlocksAtBarr, smID, perSM_blockID, numTBs_perSM,
-isMasterThread);
+isMasterThread, naive);
 /*
 if(isMasterThread && blockIdx.x == 0){
   *done =0;
@@ -542,7 +597,8 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
   unsigned int* global_count,
   unsigned int* local_count,
   unsigned int* last_block,
-  const int NUM_SM)
+  const int NUM_SM
+  bool naive)
 {
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
@@ -556,7 +612,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     bfs_kernel_dev (gg, LEVEL, enable_lb, pipe.in_wl(), pipe.out_wl());
     pipe.in_wl().swap_slots();
     //gb.Sync();
-    kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
+    kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM, naive);     
   
     pipe.advance2();
     LEVEL++;
@@ -565,7 +621,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
 
   //grid.sync();
   //gb.Sync();
-  kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);     
+  kernelAtomicTreeBarrierUniqSRB(global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM, naive);     
   if (tid == 0)
   {
     *cl_LEVEL = LEVEL;
@@ -612,6 +668,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
     bool * global_sense;
     bool* perSMsense;
     bool * done;
+    bool naive = true;
     unsigned int* global_count;
     unsigned int* local_count; 
     unsigned int *last_block;
@@ -639,12 +696,12 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
     cudaEventRecord(start);
     // gg_main_pipe_1_gpu<<<1,1>>>(gg,LEVEL,pipe,blocks,threads,cl_LEVEL, enable_lb);
     //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
-    gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM);
+    gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier, global_sense, perSMsense, done, global_count, local_count, last_block, NUM_SM, naive);
     cudaEventRecord(stop);
     cudaDeviceSynchronize();
     float ms;
     cudaEventElapsedTime(&ms, start, stop);
-    std::cout << "time cuda only(ms) " << ms << " blocks is " << gg_main_pipe_1_gpu_gb_blocks << std::endl;
+    std::cout << "time cuda only(ms) " << ms << " blocks is " << gg_main_pipe_1_gpu_gb_blocks << " Where the min is decided between" << blocks.x << " and " << ggc_get_nSM() * gg_main_pipe_1_gpu_gb_residency <<  std::endl;
     check_cuda(cudaMemcpy(&LEVEL, cl_LEVEL, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaFree(cl_LEVEL));
     cudaFree(global_sense);
