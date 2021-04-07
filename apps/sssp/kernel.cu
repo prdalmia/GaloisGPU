@@ -795,7 +795,10 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
 {
   dim3 blocks, threads;
   kernel_sizing(gg, blocks, threads);
-  blocks = ggc_get_nSM()*BLOCK_FACTOR;
+  std::cout << " Enter Block factor" << std::endl;
+  int block_factor
+  std::cin >> block_factor;
+  blocks = ggc_get_nSM()*block_factor;
   t_work.init_thread_work(gg.nnodes);
   static GlobalBarrierLifetime remove_dups_barrier;
   static bool remove_dups_barrier_inited;
