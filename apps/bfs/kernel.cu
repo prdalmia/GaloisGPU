@@ -241,7 +241,7 @@ __syncthreads();
       backoff = 1;
     }
     __syncthreads();
-cudaBarrierAtomicNaiveSRB(global_count, numBlocksAtBarr, backoff,  isMasterThread,  global_sense);
+cudaBarrierAtomicNaiveSRB(global_count, (numBlocksAtBarr*numTBs_perSM), backoff,  isMasterThread,  global_sense);
 }
 }
 
