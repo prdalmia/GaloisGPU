@@ -3,7 +3,7 @@
 #include "gg.h"
 
 const char *prog_opts = "lsb:";
-const char *prog_usage = "[-l] [-s startNode]";
+const char *prog_usage = "[-l] [-s startNode] [-b block_factor]";
 const char *prog_args_usage = "-l: enable thread block load balancer (by default false)";
 
 extern const int INF;
@@ -20,12 +20,13 @@ void process_prog_opt(char c, char *optarg) {
      start_node = atoi(optarg);
      assert(start_node >= 0);
    }
-   if(c == 'l') {
-	   enable_lb = true;
-   }
    if(c == 'b') {
     block_factor = atoi(optarg);
   }
+   if(c == 'l') {
+	   enable_lb = true;
+   }
+  
   }
 
 void output(CSRGraphTy &g, const char *output_file) {
