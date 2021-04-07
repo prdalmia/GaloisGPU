@@ -644,7 +644,7 @@ void gg_main_pipe_1_wrapper(gfloat_p p2, gfloat_p p0, gfloat_p rp, int& iter, CS
     unsigned int* global_count;
     unsigned int* local_count; 
     unsigned int *last_block;
-    bool naive = false;
+    bool naive = true;
     int NUM_SM = ggc_get_nSM();
     cudaMallocManaged((void **)&global_sense,sizeof(bool));
     cudaMallocManaged((void **)&done,sizeof(bool));
