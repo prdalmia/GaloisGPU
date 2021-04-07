@@ -597,7 +597,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
   unsigned int* global_count,
   unsigned int* local_count,
   unsigned int* last_block,
-  const int NUM_SM
+  const int NUM_SM,
   bool naive)
 {
   unsigned tid = TID_1D;
