@@ -644,7 +644,7 @@ void gg_main_pipe_1_wrapper(gfloat_p p2, gfloat_p p0, gfloat_p rp, int& iter, CS
     unsigned int* global_count;
     unsigned int* local_count; 
     unsigned int *last_block;
-    bool naive = true;
+    bool naive = false;
     int NUM_SM = ggc_get_nSM();
     cudaMallocManaged((void **)&global_sense,sizeof(bool));
     cudaMallocManaged((void **)&done,sizeof(bool));
@@ -688,7 +688,10 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
 {
   dim3 blocks, threads;
   kernel_sizing(gg, blocks, threads);
-  blocks = ggc_get_nSM()*16;
+  std::cout << " Enter Block factor" << std::endl;
+  int block_factor;
+  std::cin >> block_factor;
+  blocks = ggc_get_nSM()*block_factor;
   t_work.init_thread_work(gg.nnodes);
   static GlobalBarrierLifetime remove_dups_barrier;
   static bool remove_dups_barrier_inited;
