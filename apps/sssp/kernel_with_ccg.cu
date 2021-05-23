@@ -35,7 +35,7 @@ __global__ void kernel(CSRGraph graph, int src)
     graph.node_data[node] = (node == src) ? 0 : INF ;
   }
 }
-__device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, GlobalBarrier gb)
+__device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, GlobalBarrier gb, long long int* time_b)
 {
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
@@ -53,7 +53,12 @@ __device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, 
     marks[node] = wlnode;
   }
   //gb.Sync();
-  grid.sync();
+    long long int start_b = clock64();   
+    grid.sync();
+    long long int stop_b = clock64();
+    if(blockIdx.x == 0 && tid == 0){
+      *time_b += stop_b - start_b;
+     }
   wlnode2_end = *((volatile index_type *) (in_wl).dindex);
   for (index_type wlnode2 = 0 + tid; wlnode2 < wlnode2_end; wlnode2 += nthreads)
   {
@@ -356,8 +361,11 @@ void gg_main_pipe_1(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, int DELT
     curdelta += DELTA;
   }
 }
-__global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu_gb(CSRGraph gg, gint_p glevel, int curdelta, int i, int DELTA, GlobalBarrier remove_dups_barrier, int remove_dups_blocks, PipeContextT<Worklist2> pipe, int* cl_curdelta, int* cl_i, bool enable_lb, GlobalBarrier gb)
+__global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu_gb(CSRGraph gg, gint_p glevel, int curdelta, int i, int DELTA, GlobalBarrier remove_dups_barrier, int remove_dups_blocks, PipeContextT<Worklist2> pipe, int* cl_curdelta, int* cl_i, bool enable_lb, GlobalBarrier gb, long long int* time, long long int* time_b)
 {
+  long long int start = clock64();
+  long long int start_b;
+  long long int stop_b;
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
   cg::grid_group grid = cg::this_grid(); 
@@ -373,27 +381,49 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
       sssp_kernel_dev (gg, curdelta, enable_lb, pipe.in_wl(), pipe.out_wl(), pipe.re_wl());
       pipe.in_wl().swap_slots();
       //gb.Sync();
-      grid.sync();
+      start_b = clock64();   
+    grid.sync();
+   stop_b = clock64();
+   if(blockIdx.x == 0){
+    *time_b += stop_b - start_b;
+    }
       pipe.retry2();
     }
     //__syncthreads();
     //gb.Sync(); 
+    start_b = clock64();   
     grid.sync();
+    stop_b = clock64();
+    if(blockIdx.x == 0 && tid == 0){
+      *time_b += stop_b - start_b;
+     }
     pipe.advance2();
     if (tid == 0)
       pipe.in_wl().reset_next_slot();
-    remove_dups_dev (glevel, pipe.in_wl(), pipe.out_wl(), gb);
+    remove_dups_dev (glevel, pipe.in_wl(), pipe.out_wl(), gb, time_b);
     pipe.in_wl().swap_slots();
     //gb.Sync();
+    start_b = clock64();   
     grid.sync();
+    stop_b = clock64();
+    if(blockIdx.x == 0 && tid == 0){
+      *time_b += stop_b - start_b;
+     }
     pipe.advance2();
     i++;
     curdelta += DELTA;
   }
   //gb.Sync();
-  grid.sync();
+  start_b = clock64();   
+    grid.sync();
+    stop_b = clock64();
+    if(blockIdx.x == 0 && tid == 0){
+      *time_b += stop_b - start_b;
+     }
   if (tid == 0)
   {
+    long long int stop = clock64();
+    *time = (stop - start);
     *cl_curdelta = curdelta;
     *cl_i = i;
   }
@@ -459,12 +489,16 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     check_cuda(cudaMalloc(&cl_i, sizeof(int) * 1));
     check_cuda(cudaMemcpy(cl_curdelta, &curdelta, sizeof(int) * 1, cudaMemcpyHostToDevice));
     check_cuda(cudaMemcpy(cl_i, &i, sizeof(int) * 1, cudaMemcpyHostToDevice));
+    int* time;
+    check_cuda(cudaMallocManaged(&time, sizeof(long long int) * 1));
+    int* time_b;
+    check_cuda(cudaMallocManaged(&time_b, sizeof(long long int) * 1));
     int numBlocksPerSm;
   cudaOccupancyMaxActiveBlocksPerMultiprocessor(&numBlocksPerSm, gg_main_pipe_1_gpu_gb, __tb_gg_main_pipe_1_gpu_gb, 0);
   std::cout << "The numBLocks per Sm is " <<  numBlocksPerSm << std::endl;
     
     void *kernelArgs[] = {
-      (void *)&gg,  (void *)&glevel, (void *)&curdelta, (void *)&i, (void *)&DELTA, (void *)&remove_dups_barrier, (void *)&remove_dups_blocks,  (void *)&pipe, (void *)&cl_curdelta, (void *)&cl_i, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier
+      (void *)&gg,  (void *)&glevel, (void *)&curdelta, (void *)&i, (void *)&DELTA, (void *)&remove_dups_barrier, (void *)&remove_dups_blocks,  (void *)&pipe, (void *)&cl_curdelta, (void *)&cl_i, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier,  (void *)&time, (void *)&time_b 
   };
   cudaEventRecord(start);
      cudaLaunchCooperativeKernel((void*)gg_main_pipe_1_gpu_gb, gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb,  kernelArgs, 0, 0);
@@ -474,7 +508,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     std::cout <<cudaGetLastError() <<std::endl;
     
     cudaEventElapsedTime(&ms, start, stop);
-    std::cout << "time cuda only(ms) " << ms << std::endl;
+    printf("time cuda only(ms) is %f and Total ticks are is %llu and Barrier ticks is %llu blocks is %d\n", ms, *time, *time_b, gg_main_pipe_1_gpu_gb_blocks ) ;
     check_cuda(cudaMemcpy(&curdelta, cl_curdelta, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaMemcpy(&i, cl_i, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaFree(cl_curdelta));
