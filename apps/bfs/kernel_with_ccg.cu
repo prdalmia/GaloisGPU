@@ -408,7 +408,8 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
   cudaDeviceSynchronize();
   float ms;
   cudaEventElapsedTime(&ms, start, stop);
-  std::cout << "time cuda only(ms) = " << ms << " Total ticks are = " << time << " Barrier ticks are = " << time_b <<  std::endl;
+  std::cout << "time cuda only(ms) = " << ms << " Total ticks are = %llu " << time << " Barrier ticks are = %llu " << time_b <<  std::endl;
+  printf("time cuda only(ms) is %f and barries time is %llu and clock rate is %llu\n", ms, *time, *time_b) ;
   std::cout <<cudaGetLastError() <<std::endl;
     //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
     check_cuda(cudaMemcpy(&LEVEL, cl_LEVEL, sizeof(int) * 1, cudaMemcpyDeviceToHost));
