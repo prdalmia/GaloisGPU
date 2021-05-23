@@ -313,9 +313,9 @@ void gg_main_pipe_1(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& pipe, dim
 }
 __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu_gb(CSRGraph gg, int LEVEL, PipeContextT<Worklist2> pipe, int* cl_LEVEL, bool enable_lb, GlobalBarrier gb /*, long long int* time, long long int* time_b */)
 {
- //long long int start = clock64();
-  //long long int start_b;
-  //long long int stop_b;   
+ long long int start = clock64();
+  long long int start_b;
+  long long int stop_b;   
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
   cg::grid_group grid = cg::this_grid();
@@ -328,28 +328,27 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     bfs_kernel_dev (gg, LEVEL, enable_lb, pipe.in_wl(), pipe.out_wl());
     pipe.in_wl().swap_slots();
     //gb.Sync();
-  //  start_b = clock64();   
+   start_b = clock64();   
     grid.sync();
-   // stop_b = clock64();
-   // if(blockIdx.x == 0){
-   // *time_b += stop_b - start_b;
-   // }
+   stop_b = clock64();
+   if(blockIdx.x == 0){
+    *time_b += stop_b - start_b;
+    }
     pipe.advance2();
     LEVEL++;
   }
- // start_b = clock64();   
+ start_b = clock64();   
     grid.sync();
-  //  stop_b = clock64();
-   // if(blockIdx.x == 0 && tid == 0){
-   //   *time_b += stop_b - start_b;
-   //   }
-   // *time_b += stop_b - start_b;
+    stop_b = clock64();
+    if(blockIdx.x == 0 && tid == 0){
+      *time_b += stop_b - start_b;
+     }
   //gb.Sync();
   
   if (tid == 0)
   {
-   // long long int stop = clock64();
-    //*time = (stop - start);
+    long long int stop = clock64();
+    *time = (stop - start);
     *cl_LEVEL = LEVEL;
   }
 }
@@ -402,7 +401,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
    
     
     void *kernelArgs[] = {
-      (void *)&gg,  (void *)&LEVEL, (void *)&pipe, (void *)&cl_LEVEL, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier /* , (void *)&time, (void *)&time_b */
+      (void *)&gg,  (void *)&LEVEL, (void *)&pipe, (void *)&cl_LEVEL, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier  , (void *)&time, (void *)&time_b 
   };
   cudaEvent_t start;
   cudaEvent_t stop;
@@ -428,8 +427,8 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
   kernel_sizing(gg, blocks, threads);
   std::cout << " Enter Block factor" << std::endl;
   int block_factor;
-  //std::cin >> block_factor;
-  blocks = ggc_get_nSM()*16;
+  std::cin >> block_factor;
+  blocks = ggc_get_nSM()*block_factor;
   t_work.init_thread_work(gg.nnodes);
   PipeContextT<Worklist2> wl;
   bfs_init <<<blocks, threads>>>(gg, start_node);
