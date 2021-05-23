@@ -35,7 +35,7 @@ __global__ void kernel(CSRGraph graph, int src)
     graph.node_data[node] = (node == src) ? 0 : INF ;
   }
 }
-__device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, GlobalBarrier gb, long long int* time_b)
+__device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, GlobalBarrier gb, long long int* time_b=NULL)
 {
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
