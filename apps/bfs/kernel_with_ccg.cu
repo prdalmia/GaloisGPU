@@ -313,7 +313,7 @@ void gg_main_pipe_1(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& pipe, dim
 }
 __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu_gb(CSRGraph gg, int LEVEL, PipeContextT<Worklist2> pipe, int* cl_LEVEL, bool enable_lb, GlobalBarrier gb, long long int* time, long long int* time_b)
 {
-  long long int start = clock64();
+ //long long int start = clock64();
   long long int start_b;
   long long int stop_b;   
   unsigned tid = TID_1D;
@@ -348,8 +348,8 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
   
   if (tid == 0)
   {
-    long long int stop = clock64();
-    *time = (stop - start);
+   // long long int stop = clock64();
+    //*time = (stop - start);
     *cl_LEVEL = LEVEL;
   }
 }
