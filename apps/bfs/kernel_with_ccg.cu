@@ -428,8 +428,8 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
   kernel_sizing(gg, blocks, threads);
   std::cout << " Enter Block factor" << std::endl;
   int block_factor;
-  std::cin >> block_factor;
-  blocks = ggc_get_nSM()*block_factor;
+  //std::cin >> block_factor;
+  blocks = ggc_get_nSM()*16;
   t_work.init_thread_work(gg.nnodes);
   PipeContextT<Worklist2> wl;
   bfs_init <<<blocks, threads>>>(gg, start_node);
