@@ -388,7 +388,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
     int* time;
     check_cuda(cudaMallocManaged(&time, sizeof(long long int) * 1));
     int* time_b;
-    check_cuda(cudaMallocManaged(&time_b, sizeof(long long int) * 1);
+    check_cuda(cudaMallocManaged(&time_b, sizeof(long long int) * 1));
   
     // gg_main_pipe_1_gpu<<<1,1>>>(gg,LEVEL,pipe,blocks,threads,cl_LEVEL, enable_lb);
     //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
