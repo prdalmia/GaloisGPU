@@ -270,11 +270,8 @@ void gg_main_pipe_1(gfloat_p p2, gfloat_p p0, gfloat_p rp, int& iter, CSRGraph& 
     }
   }
 }
-__global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu_gb(gfloat_p p2, gfloat_p p0, gfloat_p rp, int iter, CSRGraph gg, CSRGraph hg, int MAX_ITERATIONS, PipeContextT<Worklist2> pipe, int* cl_iter, bool enable_lb, GlobalBarrier gb, long long int* time, long long int* time_b)
+__global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu_gb(gfloat_p p2, gfloat_p p0, gfloat_p rp, int iter, CSRGraph gg, CSRGraph hg, int MAX_ITERATIONS, PipeContextT<Worklist2> pipe, int* cl_iter, bool enable_lb, GlobalBarrier gb)
 {
-  long long int start = clock64();
-  long long int start_b;
-  long long int stop_b;
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
   cg::grid_group grid = cg::this_grid();
@@ -286,12 +283,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     init_2_dev (gg, rp, pipe.in_wl(), pipe.out_wl());
     pipe.in_wl().swap_slots();
     //gb.Sync();
-    start_b = clock64();   
     grid.sync();
-    stop_b = clock64();
-    if(blockIdx.x == 0 && tid == 0){
-      *time_b += stop_b - start_b;
-     }
     pipe.advance2();
     while (pipe.in_wl().nitems())
     {
@@ -300,12 +292,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
       pagerank_main_dev (gg, p0, rp, p2, enable_lb, pipe.in_wl(), pipe.out_wl());
       pipe.in_wl().swap_slots();
       //gb.Sync();
-      start_b = clock64();   
       grid.sync();
-    stop_b = clock64();
-    if(blockIdx.x == 0 && tid == 0){
-      *time_b += stop_b - start_b;
-     }
       pipe.advance2();
       iter++;
       if (iter >= MAX_ITERATIONS)
@@ -315,16 +302,9 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     }
   }
   //gb.Sync();
-  start_b = clock64();   
   grid.sync();
-    stop_b = clock64();
-    if(blockIdx.x == 0 && tid == 0){
-      *time_b += stop_b - start_b;
-     }
   if (tid == 0)
   {
-    long long int stop = clock64();
-    *time = (stop - start);
     *cl_iter = iter;
   }
   //grid.sync();
@@ -379,12 +359,8 @@ void gg_main_pipe_1_wrapper(gfloat_p p2, gfloat_p p0, gfloat_p rp, int& iter, CS
     int* cl_iter;
     check_cuda(cudaMalloc(&cl_iter, sizeof(int) * 1));
     check_cuda(cudaMemcpy(cl_iter, &iter, sizeof(int) * 1, cudaMemcpyHostToDevice));
-    int* time;
-    check_cuda(cudaMallocManaged(&time, sizeof(long long int) * 1));
-    int* time_b;
-    check_cuda(cudaMallocManaged(&time_b, sizeof(long long int) * 1));
-    void *kernelArgs[] = {
-    (void *)&p2,  (void *)&p0, (void *)&rp, (void *)&iter, (void *)&gg, (void *)&hg, (void *)&MAX_ITERATIONS,  (void *)&pipe, (void *)&cl_iter, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier,  (void *)&time, (void *)&time_b 
+  void *kernelArgs[] = {
+    (void *)&p2,  (void *)&p0, (void *)&rp, (void *)&iter, (void *)&gg, (void *)&hg, (void *)&MAX_ITERATIONS,  (void *)&pipe, (void *)&cl_iter, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier
   };
     // gg_main_pipe_1_gpu<<<1,1>>>(p2,p0,rp,iter,gg,hg,MAX_ITERATIONS,pipe,blocks,threads,cl_iter, enable_lb);
     cudaEvent_t start;
@@ -398,7 +374,7 @@ void gg_main_pipe_1_wrapper(gfloat_p p2, gfloat_p p0, gfloat_p rp, int& iter, CS
     cudaDeviceSynchronize();
     float ms;
     cudaEventElapsedTime(&ms, start, stop);
-    printf("time cuda only(ms) is %f and Total ticks are is %llu and Barrier ticks is %llu blocks is %d\n", ms, *time, *time_b, gg_main_pipe_1_gpu_gb_blocks ) ;
+    std::cout << "time cuda only(ms) " << ms << std::endl;
     std::cout <<cudaGetLastError() <<std::endl;
     check_cuda(cudaMemcpy(&iter, cl_iter, sizeof(int) * 1, cudaMemcpyDeviceToHost));
     check_cuda(cudaFree(cl_iter));
