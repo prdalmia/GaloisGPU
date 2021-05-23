@@ -311,10 +311,11 @@ void gg_main_pipe_1(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& pipe, dim
     LEVEL++;
   }
 }
-__global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu_gb(CSRGraph gg, int LEVEL, PipeContextT<Worklist2> pipe, int* cl_LEVEL, bool enable_lb, GlobalBarrier gb, long long int time, long long int time_b)
+__global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu_gb(CSRGraph gg, int LEVEL, PipeContextT<Worklist2> pipe, int* cl_LEVEL, bool enable_lb, GlobalBarrier gb, long long int* time, long long int* time_b)
 {
   long long int start = clock64();
-  long long int start_b;   
+  long long int start_b;
+  long long int stop_b;   
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
   cg::grid_group grid = cg::this_grid();
