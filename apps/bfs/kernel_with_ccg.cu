@@ -328,22 +328,22 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     bfs_kernel_dev (gg, LEVEL, enable_lb, pipe.in_wl(), pipe.out_wl());
     pipe.in_wl().swap_slots();
     //gb.Sync();
-    start_b = clock64();   
+  //  start_b = clock64();   
     grid.sync();
-    stop_b = clock64();
-    if(blockIdx.x == 0){
-    *time_b += stop_b - start_b;
+   // stop_b = clock64();
+   // if(blockIdx.x == 0){
+   // *time_b += stop_b - start_b;
     }
     pipe.advance2();
     LEVEL++;
   }
-  start_b = clock64();   
+ // start_b = clock64();   
     grid.sync();
-    stop_b = clock64();
-    if(blockIdx.x == 0 && tid == 0){
-      *time_b += stop_b - start_b;
-      }
-    *time_b += stop_b - start_b;
+  //  stop_b = clock64();
+   // if(blockIdx.x == 0 && tid == 0){
+   //   *time_b += stop_b - start_b;
+   //   }
+   // *time_b += stop_b - start_b;
   //gb.Sync();
   
   if (tid == 0)
