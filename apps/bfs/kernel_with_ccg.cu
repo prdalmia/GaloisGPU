@@ -415,7 +415,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
   float ms;
   cudaEventElapsedTime(&ms, start, stop);
   //std::cout << "time cuda only(ms) = " << ms << " Total ticks are = %llu " << time << " Barrier ticks are = %llu " << time_b <<  std::endl;
-  printf("time cuda only(ms) is %f and Total ticks are is %llu and Barrier ticks is %llu\n", ms, *time, *time_b) ;
+  printf("time cuda only(ms) is %f and Total ticks are is %llu and Barrier ticks is %llu blocks is %d\n", ms, *time, *time_b, gg_main_pipe_1_gpu_gb_blocks ) ;
   std::cout <<cudaGetLastError() <<std::endl;
     //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
     check_cuda(cudaMemcpy(&LEVEL, cl_LEVEL, sizeof(int) * 1, cudaMemcpyDeviceToHost));
