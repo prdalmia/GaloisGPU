@@ -311,8 +311,10 @@ void gg_main_pipe_1(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& pipe, dim
     LEVEL++;
   }
 }
-__global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu_gb(CSRGraph gg, int LEVEL, PipeContextT<Worklist2> pipe, int* cl_LEVEL, bool enable_lb, GlobalBarrier gb)
+__global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu_gb(CSRGraph gg, int LEVEL, PipeContextT<Worklist2> pipe, int* cl_LEVEL, bool enable_lb, GlobalBarrier gb, long long int time, long long int time_b)
 {
+  long long int start = clock64();
+  long long int start_b;   
   unsigned tid = TID_1D;
   unsigned nthreads = TOTAL_THREADS_1D;
   cg::grid_group grid = cg::this_grid();
@@ -325,14 +327,22 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     bfs_kernel_dev (gg, LEVEL, enable_lb, pipe.in_wl(), pipe.out_wl());
     pipe.in_wl().swap_slots();
     //gb.Sync();
+    start_b = clock64();   
     grid.sync();
+    stop_b = clock64();
+    *time_b += stop_b - start_b;
     pipe.advance2();
     LEVEL++;
   }
-  grid.sync();
+  start_b = clock64();   
+    grid.sync();
+    stop_b = clock64();
+    *time_b += stop_b - start_b;
   //gb.Sync();
+  long long int stop = clock64();
   if (tid == 0)
   {
+    *time = (stop - start);
     *cl_LEVEL = LEVEL;
   }
 }
@@ -375,13 +385,17 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
     int* cl_LEVEL;
     check_cuda(cudaMalloc(&cl_LEVEL, sizeof(int) * 1));
     check_cuda(cudaMemcpy(cl_LEVEL, &LEVEL, sizeof(int) * 1, cudaMemcpyHostToDevice));
-
+    int* time;
+    check_cuda(cudaMallocManaged(&time, sizeof(long long int) * 1));
+    int* time_b;
+    check_cuda(cudaMallocManaged(&time_b, sizeof(long long int) * 1);
+  
     // gg_main_pipe_1_gpu<<<1,1>>>(gg,LEVEL,pipe,blocks,threads,cl_LEVEL, enable_lb);
     //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
    
     
     void *kernelArgs[] = {
-      (void *)&gg,  (void *)&LEVEL, (void *)&pipe, (void *)&cl_LEVEL, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier
+      (void *)&gg,  (void *)&LEVEL, (void *)&pipe, (void *)&cl_LEVEL, (void *)&enable_lb, (void *)&gg_main_pipe_1_gpu_gb_barrier, (void *)&time, (void *)&time_b
   };
   cudaEvent_t start;
   cudaEvent_t stop;
@@ -393,7 +407,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
   cudaDeviceSynchronize();
   float ms;
   cudaEventElapsedTime(&ms, start, stop);
-  std::cout << "time cuda only(ms) " << ms << std::endl;
+  std::cout << "time cuda only(ms) = " << ms << " Total ticks are = " << time << " Barrier ticks are = " << time_b <<  std::endl;
   std::cout <<cudaGetLastError() <<std::endl;
     //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
     check_cuda(cudaMemcpy(&LEVEL, cl_LEVEL, sizeof(int) * 1, cudaMemcpyDeviceToHost));
@@ -404,7 +418,10 @@ void gg_main(CSRGraph& hg, CSRGraph& gg)
 {
   dim3 blocks, threads;
   kernel_sizing(gg, blocks, threads);
-  blocks = ggc_get_nSM()*8;
+  std::cout << " Enter Block factor" << std::endl;
+  int block_factor;
+  std::cin >> block_factor;
+  blocks = ggc_get_nSM()*block_factor;
   t_work.init_thread_work(gg.nnodes);
   PipeContextT<Worklist2> wl;
   bfs_init <<<blocks, threads>>>(gg, start_node);
