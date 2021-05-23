@@ -333,7 +333,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
    // stop_b = clock64();
    // if(blockIdx.x == 0){
    // *time_b += stop_b - start_b;
-    }
+   // }
     pipe.advance2();
     LEVEL++;
   }
