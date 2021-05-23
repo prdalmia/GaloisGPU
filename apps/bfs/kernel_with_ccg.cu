@@ -340,9 +340,10 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     stop_b = clock64();
     *time_b += stop_b - start_b;
   //gb.Sync();
-  long long int stop = clock64();
+  
   if (tid == 0)
   {
+    long long int stop = clock64();
     *time = (stop - start);
     *cl_LEVEL = LEVEL;
   }
@@ -408,7 +409,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, int& LEVEL, PipeContextT<Worklist2>& p
   cudaDeviceSynchronize();
   float ms;
   cudaEventElapsedTime(&ms, start, stop);
-  std::cout << "time cuda only(ms) = " << ms << " Total ticks are = %llu " << time << " Barrier ticks are = %llu " << time_b <<  std::endl;
+  //std::cout << "time cuda only(ms) = " << ms << " Total ticks are = %llu " << time << " Barrier ticks are = %llu " << time_b <<  std::endl;
   printf("time cuda only(ms) is %f and Total ticks are is %llu and Barrier ticks is %llu\n", ms, *time, *time_b) ;
   std::cout <<cudaGetLastError() <<std::endl;
     //gg_main_pipe_1_gpu_gb<<<gg_main_pipe_1_gpu_gb_blocks, __tb_gg_main_pipe_1_gpu_gb>>>(gg,LEVEL,pipe,cl_LEVEL, enable_lb, gg_main_pipe_1_gpu_gb_barrier);
