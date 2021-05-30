@@ -57,7 +57,7 @@ __device__ void remove_dups_dev(int * marks, Worklist2 in_wl, Worklist2 out_wl, 
     grid.sync();
     long long int stop_b = clock64();
     if(tid == 0){
-      *time_b[blockIdx.x] += stop_b - start_b;
+      time_b[blockIdx.x] += stop_b - start_b;
      }
   wlnode2_end = *((volatile index_type *) (in_wl).dindex);
   for (index_type wlnode2 = 0 + tid; wlnode2 < wlnode2_end; wlnode2 += nthreads)
@@ -385,7 +385,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     grid.sync();
    stop_b = clock64();
    if(tid == 0){
-    *time_b[blockIdx.x] += stop_b - start_b;
+    time_b[blockIdx.x] += stop_b - start_b;
    }
       pipe.retry2();
     }
@@ -395,7 +395,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     grid.sync();
     stop_b = clock64();
     if( tid == 0){
-      *time_b[blockIdx.x] += stop_b - start_b;
+      time_b[blockIdx.x] += stop_b - start_b;
      }
     pipe.advance2();
     if (tid == 0)
@@ -407,7 +407,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     grid.sync();
     stop_b = clock64();
     if( tid == 0){
-      *time_b[blockIdx.x] += stop_b - start_b;
+      time_b[blockIdx.x] += stop_b - start_b;
      }
     pipe.advance2();
     i++;
@@ -418,12 +418,12 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     grid.sync();
     stop_b = clock64();
     if(tid == 0){
-      *time_b[blockIdx.x] += stop_b - start_b;
+      time_b[blockIdx.x] += stop_b - start_b;
      }
   if (tid == 0)
   {
     long long int stop = clock64();
-    *time[blockIdx.x] = (stop - start);
+    time[blockIdx.x] = (stop - start);
     *cl_curdelta = curdelta;
     *cl_i = i;
   }
@@ -510,7 +510,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     cudaEventElapsedTime(&ms, start, stop);
     long long int max1 = 0;
     long long int max2 = 0;
-    for( auto i =0; i < gg_main_pipe_1_gpu_gb_block < i++){
+    for( auto i =0; i < gg_main_pipe_1_gpu_gb_blocks ; < i++){
       if(time_b[i]> max1){
         max = time_b[i];
       }
