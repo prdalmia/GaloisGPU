@@ -420,9 +420,10 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
     if(tid == 0){
       time_b[blockIdx.x] += stop_b - start_b;
      }
+  long long int stop = clock64();
   if (tid == 0)
   {
-    long long int stop = clock64();
+    
     time[blockIdx.x] = (stop - start);
     *cl_curdelta = curdelta;
     *cl_i = i;
@@ -489,9 +490,9 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     check_cuda(cudaMalloc(&cl_i, sizeof(int) * 1));
     check_cuda(cudaMemcpy(cl_curdelta, &curdelta, sizeof(int) * 1, cudaMemcpyHostToDevice));
     check_cuda(cudaMemcpy(cl_i, &i, sizeof(int) * 1, cudaMemcpyHostToDevice));
-    int* time;
+    long long int* time;
     check_cuda(cudaMallocManaged(&time, sizeof(long long int) * gg_main_pipe_1_gpu_gb_blocks));
-    int* time_b;
+    long long int* time_b;
     check_cuda(cudaMallocManaged(&time_b, sizeof(long long int) *  gg_main_pipe_1_gpu_gb_blocks));
     int numBlocksPerSm;
   cudaOccupancyMaxActiveBlocksPerMultiprocessor(&numBlocksPerSm, gg_main_pipe_1_gpu_gb, __tb_gg_main_pipe_1_gpu_gb, 0);
