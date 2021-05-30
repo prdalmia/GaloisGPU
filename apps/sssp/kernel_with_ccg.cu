@@ -512,7 +512,7 @@ void gg_main_pipe_1_wrapper(CSRGraph& gg, gint_p glevel, int& curdelta, int& i, 
     long long int max2 = 0;
     for( auto i =0; i < gg_main_pipe_1_gpu_gb_blocks ; < i++){
       if(time_b[i]> max1){
-        max = time_b[i];
+        max1 = time_b[i];
       }
       if(time[i]> max2){
         max2 = time[i];
