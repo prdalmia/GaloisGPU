@@ -331,7 +331,7 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
    start_b = clock64();   
     grid.sync();
    stop_b = clock64();
-   if(blockIdx.x == 0){
+   if(blockIdx.x == 0 && tid == 0){
     *time_b += stop_b - start_b;
     }
     pipe.advance2();
@@ -347,8 +347,11 @@ __global__ void __launch_bounds__(__tb_gg_main_pipe_1_gpu_gb) gg_main_pipe_1_gpu
   
   if (tid == 0)
   {
+    
     long long int stop = clock64();
+    if(blockIdx.x == 0){
     *time = (stop - start);
+    }
     *cl_LEVEL = LEVEL;
   }
 }
